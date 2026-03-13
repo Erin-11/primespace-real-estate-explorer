@@ -1,3 +1,4 @@
+import { User, Chat, ChatMessage } from './types';
 export interface Department {
   id: string;
   name: string;
@@ -13,6 +14,7 @@ export interface Property {
   landlord: string;
   agent: string;
   company: string;
+  contacts: string;
 }
 export interface LandSupply {
   id: string;
@@ -41,14 +43,14 @@ export const DEPARTMENTS: Department[] = [
 ];
 export const MOCK_PROPERTIES: Record<string, Property[]> = {
   'hong-kong': [
-    { id: '1', building: 'Two IFC', type: 'Commercial', floorUnit: '88/F', area: '25,000 sqft', tenant: 'State Street', landlord: 'Henderson Land', agent: 'PrimeSpace', company: 'IFC Management' },
-    { id: '2', building: 'Pacific Place', type: 'Retail', floorUnit: 'L2 201', area: '1,200 sqft', tenant: 'Luxury Brand', landlord: 'Swire Properties', agent: 'PrimeSpace', company: 'Swire' },
+    { id: '1', building: 'Two IFC', type: 'Commercial', floorUnit: '88/F', area: '25,000 sqft', tenant: 'State Street', landlord: 'Henderson Land', agent: 'PrimeSpace', company: 'IFC Management', contacts: 'John Smith +852 2800 1234' },
+    { id: '2', building: 'Pacific Place', type: 'Retail', floorUnit: 'L2 201', area: '1,200 sqft', tenant: 'Luxury Brand', landlord: 'Swire Properties', agent: 'PrimeSpace', company: 'Swire', contacts: 'M. Chen +852 2918 8888' },
   ],
   'commercial-sales': [
-    { id: '3', building: 'The Center', type: 'Commercial', floorUnit: 'Whole 70/F', area: '24,000 sqft', tenant: 'Hedge Fund X', landlord: 'Consortium', agent: 'John Doe', company: 'HK Assets' },
+    { id: '3', building: 'The Center', type: 'Commercial', floorUnit: 'Whole 70/F', area: '24,000 sqft', tenant: 'Hedge Fund X', landlord: 'Consortium', agent: 'John Doe', company: 'HK Assets', contacts: 'A. Wong +852 3456 7890' },
   ],
   'industrial': [
-    { id: '4', building: 'ATL Logistics Centre', type: 'Industrial', floorUnit: 'Block B, 4/F', area: '50,000 sqft', tenant: 'Logistics Pro', landlord: 'Goodman', agent: 'Jane Smith', company: 'ATL' },
+    { id: '4', building: 'ATL Logistics Centre', type: 'Industrial', floorUnit: 'Block B, 4/F', area: '50,000 sqft', tenant: 'Logistics Pro', landlord: 'Goodman', agent: 'Jane Smith', company: 'ATL', contacts: 'K. Lee +852 2489 1000' },
   ]
 };
 export const MOCK_LAND_SUPPLY: Record<string, LandSupply[]> = {
@@ -67,3 +69,7 @@ export const MOCK_VALUATION: Record<string, Valuation[]> = {
     { id: 'v2', address: 'Futian CBD Block 5', date: '2024-03-12', propertyType: 'Residential', area: '8,000 sqm', valuationType: 'Market Value', valuer: 'Colliers' },
   ]
 };
+// FIX: Compatibility exports for worker/entities.ts
+export const MOCK_USERS: User[] = [];
+export const MOCK_CHATS: Chat[] = [];
+export const MOCK_CHAT_MESSAGES: ChatMessage[] = [];
