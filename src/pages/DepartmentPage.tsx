@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, LayoutDashboard } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DEPARTMENTS, MOCK_PROPERTIES, MOCK_LAND_SUPPLY, MOCK_VALUATION } from '@shared/mock-data';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PropertiesTable } from '@/components/PropertiesTable';
@@ -13,66 +14,106 @@ export function DepartmentPage() {
   const [isLoading, setIsLoading] = useState(true);
   const department = DEPARTMENTS.find((d) => d.id === id);
   useEffect(() => {
-    // Simulate data loading for a polished feel
-    const timer = setTimeout(() => setIsLoading(false), 600);
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 800);
     return () => clearTimeout(timer);
   }, [id]);
   if (!department) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen space-y-4">
-        <h1 className="text-2xl font-bold">Department Not Found</h1>
-        <Link to="/" className="text-primary hover:underline">Return to Home</Link>
+      <div className="flex flex-col items-center justify-center h-screen space-y-6 text-center px-4">
+        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+          <LayoutDashboard className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">Department Not Found</h1>
+          <p className="text-muted-foreground">The requested section could not be located in our database.</p>
+        </div>
+        <Link to="/" className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity">
+          <ChevronLeft className="w-4 h-4 mr-2" />
+          Back to Selection
+        </Link>
       </div>
     );
   }
-  // Hide Valuation for HK and Kowloon
   const showValuation = id !== 'hong-kong' && id !== 'kowloon';
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <header className="border-b bg-background/80 backdrop-blur-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/" className="p-2 hover:bg-secondary rounded-full transition-colors" aria-label="Go back">
+          <div className="flex items-center gap-4 overflow-hidden">
+            <Link 
+              to="/" 
+              className="p-2 hover:bg-secondary rounded-full transition-all hover:scale-105 active:scale-95" 
+              aria-label="Back to home"
+            >
               <ChevronLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-xl font-semibold tracking-tight truncate">{department.name} Explorer</h1>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Department</span>
+              <h1 className="text-lg font-bold tracking-tight truncate max-w-[200px] sm:max-w-none">
+                {department.name} Explorer
+              </h1>
+            </div>
           </div>
           <ThemeToggle className="static" />
         </div>
       </header>
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="py-8 md:py-10 lg:py-12">
-          {isLoading ? (
-            <div className="space-y-12">
-               <div className="h-10 w-full max-w-md bg-muted rounded-md animate-pulse" />
-               <DataTableSkeleton />
-            </div>
-          ) : (
-            <Tabs defaultValue="properties" className="space-y-6">
-              <div className="flex items-center justify-between">
-                <TabsList className="grid w-full max-w-md grid-cols-3">
-                  <TabsTrigger value="properties">Properties</TabsTrigger>
-                  <TabsTrigger value="land">Land Supply</TabsTrigger>
-                  {showValuation && <TabsTrigger value="valuation">Valuation</TabsTrigger>}
-                </TabsList>
-              </div>
-              <TabsContent value="properties" className="animate-in fade-in-50 duration-500 outline-none">
-                <PropertiesTable data={MOCK_PROPERTIES[id || ''] || []} />
-              </TabsContent>
-              <TabsContent value="land" className="animate-in fade-in-50 duration-500 outline-none">
-                <LandSupplyTable data={MOCK_LAND_SUPPLY[id || ''] || []} />
-              </TabsContent>
-              {showValuation && (
-                <TabsContent value="valuation" className="animate-in fade-in-50 duration-500 outline-none">
-                  <ValuationTable data={MOCK_VALUATION[id || ''] || []} />
-                </TabsContent>
-              )}
-            </Tabs>
-          )}
+      <main className="flex-1 w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 lg:py-12">
+          <AnimatePresence mode="wait">
+            {isLoading ? (
+              <motion.div 
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-12"
+              >
+                 <div className="h-10 w-full max-w-sm bg-muted rounded-lg animate-pulse" />
+                 <DataTableSkeleton />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="content"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+              >
+                <Tabs defaultValue="properties" className="space-y-8">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-1">
+                    <TabsList className="grid w-full sm:w-auto grid-cols-2 lg:grid-cols-3 bg-secondary/50 p-1 h-auto">
+                      <TabsTrigger value="properties" className="py-2.5 px-6 data-[state=active]:shadow-sm">Properties</TabsTrigger>
+                      <TabsTrigger value="land" className="py-2.5 px-6 data-[state=active]:shadow-sm">Land Supply</TabsTrigger>
+                      {showValuation && (
+                        <TabsTrigger value="valuation" className="py-2.5 px-6 data-[state=active]:shadow-sm">Valuation</TabsTrigger>
+                      )}
+                    </TabsList>
+                  </div>
+                  <div className="mt-6">
+                    <TabsContent value="properties" className="mt-0 focus-visible:outline-none">
+                      <PropertiesTable data={MOCK_PROPERTIES[id || ''] || []} />
+                    </TabsContent>
+                    <TabsContent value="land" className="mt-0 focus-visible:outline-none">
+                      <LandSupplyTable data={MOCK_LAND_SUPPLY[id || ''] || []} />
+                    </TabsContent>
+                    {showValuation && (
+                      <TabsContent value="valuation" className="mt-0 focus-visible:outline-none">
+                        <ValuationTable data={MOCK_VALUATION[id || ''] || []} />
+                      </TabsContent>
+                    )}
+                  </div>
+                </Tabs>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </main>
-      <footer className="py-8 border-t text-center text-xs text-muted-foreground mt-auto">
-        &copy; {new Date().getFullYear()} PrimeSpace Analytics — High Performance Property Intelligence
+      <footer className="py-10 border-t bg-muted/30">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+            &copy; {new Date().getFullYear()} PrimeSpace Analytics — High Performance Property Intelligence
+          </p>
+        </div>
       </footer>
     </div>
   );

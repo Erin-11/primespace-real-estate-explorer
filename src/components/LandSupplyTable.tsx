@@ -14,67 +14,89 @@ interface LandSupplyTableProps {
 export function LandSupplyTable({ data }: LandSupplyTableProps) {
   const { processedData, filters, sort, setFilter, toggleSort, clearAll } = useDataTable(data);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+  const hasActiveFilters = Object.values(filters).some(v => v !== '') || sort.direction !== null;
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
-    if (sort.key !== columnKey) return <ArrowUpDown className="ml-2 h-4 w-4 opacity-30" />;
-    return sort.direction === 'asc' ? <ArrowUp className="ml-2 h-4 w-4 text-primary" /> : <ArrowDown className="ml-2 h-4 w-4 text-primary" />;
+    if (sort.key !== columnKey) return <ArrowUpDown className="ml-2 h-3.5 w-3.5 opacity-20" />;
+    return sort.direction === 'asc' ? <ArrowUp className="ml-2 h-3.5 w-3.5 text-primary" /> : <ArrowDown className="ml-2 h-3.5 w-3.5 text-primary" />;
   };
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium">Land Supply Data</h2>
-        <p className="text-sm text-muted-foreground">{processedData.length} records</p>
+      <div className="flex items-center justify-between px-1">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Land Supply Data</h2>
+          <p className="text-sm text-muted-foreground">Strategic developments and upcoming plots</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest bg-secondary px-2 py-1 rounded">
+            {processedData.length} Records
+          </p>
+          {hasActiveFilters && (
+            <Button variant="outline" size="sm" onClick={clearAll} className="h-8 text-xs border-dashed">
+              <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> Reset
+            </Button>
+          )}
+        </div>
       </div>
-      <Card className="border-muted overflow-hidden">
-        <div className="overflow-x-auto max-h-[600px]">
-          <Table>
-            <TableHeader className="sticky top-0 z-20 bg-background">
-              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                {[
-                  { key: 'address', label: 'Address' },
-                  { key: 'usage', label: 'Usage' },
-                  { key: 'projectName', label: 'Project Name' },
-                  { key: 'area', label: 'Area' },
-                  { key: 'year', label: 'Planned Year' },
-                ].map((col) => (
-                  <TableHead key={col.key} className="whitespace-nowrap">
-                    <button 
-                      onClick={() => toggleSort(col.key)} 
-                      className="inline-flex items-center hover:text-foreground transition-colors py-2"
-                    >
-                      {col.label} <SortIcon columnKey={col.key} />
-                    </button>
-                  </TableHead>
-                ))}
-                <TableHead className="w-12" />
-              </TableRow>
-              <TableRow className="bg-background hover:bg-background border-b sticky top-[44px] z-10 shadow-sm">
-                <TableCell className="p-2"><Input placeholder="Address..." className="h-8 text-xs bg-secondary" value={filters.address || ''} onChange={(e) => setFilter('address', e.target.value)} /></TableCell>
-                <TableCell className="p-2"><Input placeholder="Usage..." className="h-8 text-xs bg-secondary" value={filters.usage || ''} onChange={(e) => setFilter('usage', e.target.value)} /></TableCell>
-                <TableCell className="p-2"><Input placeholder="Project..." className="h-8 text-xs bg-secondary" value={filters.projectName || ''} onChange={(e) => setFilter('projectName', e.target.value)} /></TableCell>
-                <TableCell className="p-2"><Input placeholder="Area..." className="h-8 text-xs bg-secondary" value={filters.area || ''} onChange={(e) => setFilter('area', e.target.value)} /></TableCell>
-                <TableCell className="p-2"><Input placeholder="Year..." className="h-8 text-xs bg-secondary" value={filters.year || ''} onChange={(e) => setFilter('year', e.target.value)} /></TableCell>
-                <TableCell className="p-2 text-center">
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={clearAll}><RotateCcw className="h-4 w-4" /></Button>
-                </TableCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {processedData.length > 0 ? (
-                processedData.map((land) => (
-                  <TableRow key={land.id} className="hover:bg-muted/30 transition-colors">
-                    <TableCell><button onClick={() => setSelectedAddress(land.address)} className="text-primary hover:underline font-medium text-left">{land.address}</button></TableCell>
-                    <TableCell className="text-sm">{land.usage}</TableCell>
-                    <TableCell className="text-sm">{land.projectName}</TableCell>
-                    <TableCell className="text-sm">{land.area}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">{land.year}</TableCell>
-                    <TableCell />
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow><TableCell colSpan={6} className="h-24 text-center text-muted-foreground">No records matching criteria.</TableCell></TableRow>
-              )}
-            </TableBody>
-          </Table>
+      <Card className="border-muted shadow-soft overflow-hidden">
+        <div className="overflow-x-auto relative">
+          <div className="min-w-[1000px]">
+            <Table>
+              <TableHeader className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm">
+                <TableRow className="bg-muted/30 hover:bg-muted/30 border-b">
+                  {[
+                    { key: 'address', label: 'Address', width: 'w-[300px]' },
+                    { key: 'usage', label: 'Usage', width: 'w-[150px]' },
+                    { key: 'projectName', label: 'Project Name', width: 'w-[250px]' },
+                    { key: 'area', label: 'Area', width: 'w-[150px]' },
+                    { key: 'year', label: 'Year', width: 'w-[100px]' },
+                  ].map((col) => (
+                    <TableHead key={col.key} className={cn("whitespace-nowrap h-11", col.width)}>
+                      <button
+                        onClick={() => toggleSort(col.key)}
+                        className="inline-flex items-center hover:text-foreground transition-colors py-2 font-semibold text-xs uppercase tracking-widest"
+                      >
+                        {col.label} <SortIcon columnKey={col.key} />
+                      </button>
+                    </TableHead>
+                  ))}
+                  <TableHead className="w-12" />
+                </TableRow>
+                <TableRow className="bg-background/80 hover:bg-background/80 border-b sticky top-[44px] z-20 shadow-sm">
+                  <TableCell className="p-2"><Input placeholder="Filter address..." className="h-8 text-xs bg-secondary/50 border-none" value={filters.address || ''} onChange={(e) => setFilter('address', e.target.value)} /></TableCell>
+                  <TableCell className="p-2"><Input placeholder="Usage..." className="h-8 text-xs bg-secondary/50 border-none" value={filters.usage || ''} onChange={(e) => setFilter('usage', e.target.value)} /></TableCell>
+                  <TableCell className="p-2"><Input placeholder="Search projects..." className="h-8 text-xs bg-secondary/50 border-none" value={filters.projectName || ''} onChange={(e) => setFilter('projectName', e.target.value)} /></TableCell>
+                  <TableCell className="p-2"><Input placeholder="Area..." className="h-8 text-xs bg-secondary/50 border-none" value={filters.area || ''} onChange={(e) => setFilter('area', e.target.value)} /></TableCell>
+                  <TableCell className="p-2"><Input placeholder="Year..." className="h-8 text-xs bg-secondary/50 border-none" value={filters.year || ''} onChange={(e) => setFilter('year', e.target.value)} /></TableCell>
+                  <TableCell className="p-2" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {processedData.length > 0 ? (
+                  processedData.map((land) => (
+                    <TableRow key={land.id} className="hover:bg-accent/50 transition-colors">
+                      <TableCell>
+                        <button 
+                          onClick={() => setSelectedAddress(land.address)} 
+                          className="text-primary font-semibold hover:underline decoration-primary/30 underline-offset-4 text-left"
+                        >
+                          {land.address}
+                        </button>
+                      </TableCell>
+                      <TableCell className="text-sm font-medium">
+                        <span className="px-2 py-0.5 bg-secondary rounded-full">{land.usage}</span>
+                      </TableCell>
+                      <TableCell className="text-sm font-semibold text-foreground/80">{land.projectName}</TableCell>
+                      <TableCell className="text-sm font-mono">{land.area}</TableCell>
+                      <TableCell className="text-sm font-bold text-muted-foreground">{land.year}</TableCell>
+                      <TableCell />
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow><TableCell colSpan={6} className="h-48 text-center text-muted-foreground font-medium">No records found.</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </Card>
       <MapModal address={selectedAddress || ''} isOpen={!!selectedAddress} onClose={() => setSelectedAddress(null)} />
