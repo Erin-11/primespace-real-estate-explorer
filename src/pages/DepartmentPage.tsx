@@ -1,125 +1,62 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft, LayoutDashboard } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft } from 'lucide-react';
 import { DEPARTMENTS, MOCK_PROPERTIES, MOCK_LAND_SUPPLY, MOCK_VALUATION } from '@shared/mock-data';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PropertiesTable } from '@/components/PropertiesTable';
 import { LandSupplyTable } from '@/components/LandSupplyTable';
 import { ValuationTable } from '@/components/ValuationTable';
-import { DataTableSkeleton } from '@/components/DataTableSkeleton';
-import { DepartmentStats } from '@/components/DepartmentStats';
-import { AppLayout } from '@/components/layout/AppLayout';
+import { ThemeToggle } from '@/components/ThemeToggle';
 export function DepartmentPage() {
   const { id } = useParams<{ id: string }>();
-  const [isLoading, setIsLoading] = useState(true);
-  const department = useMemo(() => {
-    if (!id) return undefined;
-    return DEPARTMENTS.find((d) => d.id === id);
-  }, [id]);
-  useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 400);
-    return () => clearTimeout(timer);
-  }, [id]);
+  const department = DEPARTMENTS.find((d) => d.id === id);
   if (!department) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen space-y-6 text-center px-4">
-        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-          <LayoutDashboard className="w-8 h-8 text-muted-foreground" />
-        </div>
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Department Not Found</h1>
-          <p className="text-muted-foreground">The requested section could not be located in our database.</p>
-        </div>
-        <Link to="/" className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:opacity-90 transition-opacity">
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Back to Selection
-        </Link>
+      <div className="flex flex-col items-center justify-center h-screen space-y-4">
+        <h1 className="text-2xl font-bold">Department Not Found</h1>
+        <Link to="/" className="text-primary hover:underline">Return to Home</Link>
       </div>
     );
   }
-  const showValuation = department.id !== 'hong-kong' && department.id !== 'kowloon';
-  const properties = MOCK_PROPERTIES[id || ''] || [];
-  const landSupply = MOCK_LAND_SUPPLY[id || ''] || [];
-  const valuations = MOCK_VALUATION[id || ''] || [];
+  // Hide Valuation for HK and Kowloon
+  const showValuation = id !== 'hong-kong' && id !== 'kowloon';
   return (
-    <AppLayout container contentClassName="py-0">
-      <div className="space-y-10">
-        <AnimatePresence mode="wait">
-          {isLoading ? (
-            <motion.div
-              key={`loading-${id}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-12"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-32 bg-muted/50 rounded-xl animate-pulse" />
-                ))}
-              </div>
-              <DataTableSkeleton />
-            </motion.div>
-          ) : (
-            <motion.div
-              key={`content-${id}`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div className="space-y-2">
-                  <p className="text-[11px] font-black uppercase tracking-[0.4em] text-primary leading-none">
-                    Institutional Intelligence
-                  </p>
-                  <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none">
-                    {department.name} <span className="text-muted-foreground/20">/</span> Explorer
-                  </h1>
-                </div>
-              </div>
-              <DepartmentStats
-                properties={properties}
-                landSupply={landSupply}
-                valuations={valuations}
-              />
-              <Tabs defaultValue="properties" className="space-y-8">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-1">
-                  <TabsList className="grid w-full sm:w-auto grid-cols-2 lg:grid-cols-3 bg-secondary/60 p-1 h-auto rounded-lg">
-                    <TabsTrigger value="properties" className="py-2 px-8 text-xs font-bold uppercase tracking-widest data-[state=active]:shadow-sm data-[state=active]:bg-background transition-all">
-                      Properties
-                    </TabsTrigger>
-                    <TabsTrigger value="land" className="py-2 px-8 text-xs font-bold uppercase tracking-widest data-[state=active]:shadow-sm data-[state=active]:bg-background transition-all">
-                      Land Supply
-                    </TabsTrigger>
-                    {showValuation && (
-                      <TabsTrigger value="valuation" className="py-2 px-8 text-xs font-bold uppercase tracking-widest data-[state=active]:shadow-sm data-[state=active]:bg-background transition-all">
-                        Valuation
-                      </TabsTrigger>
-                    )}
-                  </TabsList>
-                </div>
-                <div className="mt-8">
-                  <TabsContent value="properties" className="mt-0 ring-offset-background focus-visible:outline-none">
-                    <PropertiesTable data={properties} />
-                  </TabsContent>
-                  <TabsContent value="land" className="mt-0 ring-offset-background focus-visible:outline-none">
-                    <LandSupplyTable data={landSupply} />
-                  </TabsContent>
-                  {showValuation && (
-                    <TabsContent value="valuation" className="mt-0 ring-offset-background focus-visible:outline-none">
-                      <ValuationTable data={valuations} />
-                    </TabsContent>
-                  )}
-                </div>
-              </Tabs>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </AppLayout>
+    <div className="min-h-screen bg-background flex flex-col">
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link to="/" className="p-2 hover:bg-secondary rounded-full transition-colors">
+              <ChevronLeft className="w-5 h-5" />
+            </Link>
+            <h1 className="text-xl font-semibold tracking-tight">{department.name} Explorer</h1>
+          </div>
+          <ThemeToggle className="static" />
+        </div>
+      </header>
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="py-8 md:py-10 lg:py-12">
+          <Tabs defaultValue="properties" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <TabsList className="grid w-full max-w-md grid-cols-3">
+                <TabsTrigger value="properties">Properties</TabsTrigger>
+                <TabsTrigger value="land">Land Supply</TabsTrigger>
+                {showValuation && <TabsTrigger value="valuation">Valuation</TabsTrigger>}
+              </TabsList>
+            </div>
+            <TabsContent value="properties" className="animate-in fade-in-50 duration-500">
+              <PropertiesTable data={MOCK_PROPERTIES[id || ''] || []} />
+            </TabsContent>
+            <TabsContent value="land" className="animate-in fade-in-50 duration-500">
+              <LandSupplyTable data={MOCK_LAND_SUPPLY[id || ''] || []} />
+            </TabsContent>
+            {showValuation && (
+              <TabsContent value="valuation" className="animate-in fade-in-50 duration-500">
+                <ValuationTable data={MOCK_VALUATION[id || ''] || []} />
+              </TabsContent>
+            )}
+          </Tabs>
+        </div>
+      </main>
+    </div>
   );
 }
