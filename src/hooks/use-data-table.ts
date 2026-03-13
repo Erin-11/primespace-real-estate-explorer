@@ -14,11 +14,9 @@ export function useDataTable<T extends Record<string, any>>(data: T[]) {
   }, []);
   const toggleSort = useCallback((key: string) => {
     setSort((prev) => {
-      // If clicking a new column or current sort is null, default to 'asc'
       if (prev.key !== key || prev.direction === null) {
         return { key, direction: 'asc' };
       }
-      // Cycle: asc -> desc -> null
       if (prev.direction === 'asc') {
         return { key, direction: 'desc' };
       }
@@ -30,16 +28,16 @@ export function useDataTable<T extends Record<string, any>>(data: T[]) {
     setSort({ key: '', direction: null });
   }, []);
   const processedData = useMemo(() => {
-    if (!data || data.length === 0) return [];
+    if (!Array.isArray(data) || data.length === 0) return [];
     let result = [...data];
     // Filter Logic
-    const activeFilters = Object.entries(filters).filter(([_, v]) => v && v.trim() !== '');
+    const activeFilters = Object.entries(filters).filter(([_, v]) => v != null && String(v).trim() !== '');
     if (activeFilters.length > 0) {
       result = result.filter((item) => {
         return activeFilters.every(([key, value]) => {
           const itemValue = item[key] != null ? String(item[key]).toLowerCase() : '';
-          const searchValue = value.toLowerCase().trim();
-          if (key === 'type' && value !== 'All') {
+          const searchValue = String(value).toLowerCase().trim();
+          if (key === 'type' && searchValue !== 'all') {
             return itemValue === searchValue;
           }
           return itemValue.includes(searchValue);
@@ -54,11 +52,16 @@ export function useDataTable<T extends Record<string, any>>(data: T[]) {
         // Handle numeric-aware natural sorting for strings
         const strA = String(valA);
         const strB = String(valB);
-        const comparison = strA.localeCompare(strB, undefined, {
-          numeric: true,
-          sensitivity: 'base'
-        });
-        return sort.direction === 'asc' ? comparison : -comparison;
+        try {
+          const comparison = strA.localeCompare(strB, undefined, {
+            numeric: true,
+            sensitivity: 'base'
+          });
+          return sort.direction === 'asc' ? comparison : -comparison;
+        } catch (e) {
+          console.warn('Sorting error for key:', sort.key, e);
+          return 0;
+        }
       });
     }
     return result;

@@ -8,33 +8,38 @@ interface DepartmentStatsProps {
   landSupply: LandSupply[];
   valuations: Valuation[];
 }
-export function DepartmentStats({ properties, landSupply, valuations }: DepartmentStatsProps) {
+export function DepartmentStats({ properties = [], landSupply = [], valuations = [] }: DepartmentStatsProps) {
   const stats = useMemo(() => {
-    // Helper to parse "25,000 sqft" or "12,000 sqm" into numbers
-    const parseArea = (areaStr: string) => {
-      const match = areaStr.match(/[\d,.]+/);
+    // Helper to parse "25,000 sqft" or "12,000 sqm" into numbers safely
+    const parseArea = (areaStr: string | undefined | null) => {
+      if (!areaStr) return 0;
+      const match = String(areaStr).match(/[\d,.]+/);
       if (!match) return 0;
       return parseFloat(match[0].replace(/,/g, ''));
     };
-    const totalPropArea = properties.reduce((acc, p) => acc + parseArea(p.area), 0);
-    const avgArea = properties.length > 0 ? totalPropArea / properties.length : 0;
+    const propArea = properties.reduce((acc, p) => acc + parseArea(p.area), 0);
+    const landArea = landSupply.reduce((acc, l) => acc + parseArea(l.area), 0);
+    const valArea = valuations.reduce((acc, v) => acc + parseArea(v.area), 0);
+    const totalAreaSum = propArea + landArea + valArea;
+    const totalCount = properties.length + landSupply.length + valuations.length;
+    const avgArea = totalCount > 0 ? totalAreaSum / totalCount : 0;
     return [
       {
-        label: 'Total Inventory',
-        value: properties.length + landSupply.length + valuations.length,
-        subtext: `${properties.length} Active Listings`,
+        label: 'Portfolio Items',
+        value: totalCount,
+        subtext: 'Combined Data Points',
         icon: <Hash className="w-5 h-5" />,
       },
       {
-        label: 'Aggregate Area',
-        value: totalPropArea.toLocaleString(),
-        subtext: 'Calculated sqft / sqm',
+        label: 'Total Department Area',
+        value: totalAreaSum.toLocaleString(),
+        subtext: 'Aggregate sqft / sqm',
         icon: <Maximize2 className="w-5 h-5" />,
       },
       {
-        label: 'Avg. Unit Size',
+        label: 'Mean Asset Size',
         value: Math.round(avgArea).toLocaleString(),
-        subtext: 'Square footage mean',
+        subtext: 'Portfolio-wide average',
         icon: <Activity className="w-5 h-5" />,
       },
     ];

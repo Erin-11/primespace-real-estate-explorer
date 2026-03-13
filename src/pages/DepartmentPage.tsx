@@ -13,10 +13,10 @@ import { DepartmentStats } from '@/components/DepartmentStats';
 export function DepartmentPage() {
   const { id } = useParams<{ id: string }>();
   const [isLoading, setIsLoading] = useState(true);
-  const department = DEPARTMENTS.find((d) => d.id === id);
+  const department = useMemo(() => DEPARTMENTS.find((d) => d.id === id), [id]);
   useEffect(() => {
     setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 800);
+    const timer = setTimeout(() => setIsLoading(false), 600);
     return () => clearTimeout(timer);
   }, [id]);
   if (!department) {
@@ -36,7 +36,10 @@ export function DepartmentPage() {
       </div>
     );
   }
-  const showValuation = id !== 'hong-kong' && id !== 'kowloon';
+  const showValuation = department.id !== 'hong-kong' && department.id !== 'kowloon';
+  const properties = MOCK_PROPERTIES[id || ''] || [];
+  const landSupply = MOCK_LAND_SUPPLY[id || ''] || [];
+  const valuations = MOCK_VALUATION[id || ''] || [];
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="border-b bg-background/80 backdrop-blur-lg sticky top-0 z-50">
@@ -68,10 +71,14 @@ export function DepartmentPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: 0.2 }}
                 className="space-y-12"
               >
-                 <div className="h-10 w-full max-w-sm bg-muted rounded-lg animate-pulse" />
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-32 bg-muted rounded-xl animate-pulse" />
+                    ))}
+                 </div>
                  <DataTableSkeleton />
               </motion.div>
             ) : (
@@ -80,12 +87,12 @@ export function DepartmentPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
               >
-                <DepartmentStats 
-                  properties={MOCK_PROPERTIES[id || ''] || []}
-                  landSupply={MOCK_LAND_SUPPLY[id || ''] || []}
-                  valuations={MOCK_VALUATION[id || ''] || []}
+                <DepartmentStats
+                  properties={properties}
+                  landSupply={landSupply}
+                  valuations={valuations}
                 />
                 <Tabs defaultValue="properties" className="space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-1">
@@ -99,14 +106,14 @@ export function DepartmentPage() {
                   </div>
                   <div className="mt-6">
                     <TabsContent value="properties" className="mt-0 focus-visible:outline-none">
-                      <PropertiesTable data={MOCK_PROPERTIES[id || ''] || []} />
+                      <PropertiesTable data={properties} />
                     </TabsContent>
                     <TabsContent value="land" className="mt-0 focus-visible:outline-none">
-                      <LandSupplyTable data={MOCK_LAND_SUPPLY[id || ''] || []} />
+                      <LandSupplyTable data={landSupply} />
                     </TabsContent>
                     {showValuation && (
                       <TabsContent value="valuation" className="mt-0 focus-visible:outline-none">
-                        <ValuationTable data={MOCK_VALUATION[id || ''] || []} />
+                        <ValuationTable data={valuations} />
                       </TabsContent>
                     )}
                   </div>
