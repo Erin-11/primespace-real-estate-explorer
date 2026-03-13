@@ -25,14 +25,14 @@ export function MapModal({ address, isOpen, onClose }: MapModalProps) {
   }, [isOpen]);
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-4xl p-0 overflow-hidden border-none shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+        <DialogContent className="sm:max-w-4xl p-0 overflow-hidden border-none shadow-2xl animate-in slide-in-from-bottom-4 duration-300" aria-describedby="map-modal-description">
         <DialogHeader className="p-5 border-b bg-background flex flex-row items-center justify-between space-y-0">
           <DialogTitle className="text-base font-bold flex items-center gap-2 truncate pr-4">
             <MapPin className="w-4 h-4 text-primary shrink-0" />
             <span className="truncate">{address || 'Location Explorer'}</span>
           </DialogTitle>
-          <DialogDescription className="sr-only">
-            Interactive Google Map showing the location of {address}
+          <DialogDescription id="map-modal-description" className="sr-only">
+            Embedded Google Map view of the department location at {address}. Opens in full maps app via the link for directions and street view.
           </DialogDescription>
           <a
             href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`}
