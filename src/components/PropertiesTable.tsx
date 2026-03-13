@@ -18,10 +18,10 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const hasActiveFilters = Object.values(filters).some(v => v !== '') || sort.direction !== null;
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
-    if (sort.key !== columnKey) return <ArrowUpDown className="ml-2 h-3.5 w-3.5 opacity-20" />;
-    return sort.direction === 'asc' 
-      ? <ArrowUp className="ml-2 h-3.5 w-3.5 text-primary animate-in fade-in zoom-in duration-300" /> 
-      : <ArrowDown className="ml-2 h-3.5 w-3.5 text-primary animate-in fade-in zoom-in duration-300" />;
+    if (sort.key !== columnKey) return <ArrowUpDown className="ml-2 h-4 w-4 opacity-20" />;
+    return sort.direction === 'asc'
+      ? <ArrowUp className="ml-2 h-4 w-4 text-primary animate-in fade-in zoom-in duration-300" />
+      : <ArrowDown className="ml-2 h-4 w-4 text-primary animate-in fade-in zoom-in duration-300" />;
   };
   return (
     <div className="space-y-4">
@@ -35,9 +35,9 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
             {processedData.length} Records
           </p>
           {hasActiveFilters && (
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={clearAll}
               className="h-8 text-xs gap-1.5 border-dashed hover:border-destructive hover:text-destructive transition-all"
             >
@@ -48,7 +48,7 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
         </div>
       </div>
       <Card className="border-muted shadow-soft overflow-hidden">
-        <div className="overflow-x-auto relative">
+        <div className="overflow-auto max-h-[calc(100vh-320px)] relative">
           <div className="min-w-[1200px]">
             <Table>
               <TableHeader className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm">
@@ -76,14 +76,13 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
                   ))}
                   <TableHead className="w-12"></TableHead>
                 </TableRow>
-                {/* Fixed Filter Row */}
                 <TableRow className="bg-background/80 hover:bg-background/80 border-b shadow-sm sticky top-[44px] z-20">
                   <TableCell className="p-2">
-                    <Input 
-                      placeholder="Filter building..." 
-                      className="h-8 text-xs bg-secondary/50 border-none focus-visible:ring-1" 
-                      value={filters.building || ''} 
-                      onChange={(e) => setFilter('building', e.target.value)} 
+                    <Input
+                      placeholder="Filter building..."
+                      className="h-8 text-xs bg-secondary/50 border-none focus-visible:ring-1"
+                      value={filters.building || ''}
+                      onChange={(e) => setFilter('building', e.target.value)}
                     />
                   </TableCell>
                   <TableCell className="p-2">
@@ -111,8 +110,8 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
                   processedData.map((property) => (
                     <TableRow key={property.id} className="hover:bg-accent/50 transition-colors group">
                       <TableCell className="font-semibold whitespace-nowrap">
-                        <button 
-                          onClick={() => setSelectedAddress(property.building)} 
+                        <button
+                          onClick={() => setSelectedAddress(property.building)}
                           className="text-primary hover:text-primary/70 underline underline-offset-4 decoration-primary/20 hover:decoration-primary transition-all text-left"
                         >
                           {property.building}

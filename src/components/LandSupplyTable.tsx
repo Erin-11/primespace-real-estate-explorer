@@ -16,8 +16,10 @@ export function LandSupplyTable({ data }: LandSupplyTableProps) {
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const hasActiveFilters = Object.values(filters).some(v => v !== '') || sort.direction !== null;
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
-    if (sort.key !== columnKey) return <ArrowUpDown className="ml-2 h-3.5 w-3.5 opacity-20" />;
-    return sort.direction === 'asc' ? <ArrowUp className="ml-2 h-3.5 w-3.5 text-primary" /> : <ArrowDown className="ml-2 h-3.5 w-3.5 text-primary" />;
+    if (sort.key !== columnKey) return <ArrowUpDown className="ml-2 h-4 w-4 opacity-20" />;
+    return sort.direction === 'asc' 
+      ? <ArrowUp className="ml-2 h-4 w-4 text-primary animate-in fade-in zoom-in duration-300" /> 
+      : <ArrowDown className="ml-2 h-4 w-4 text-primary animate-in fade-in zoom-in duration-300" />;
   };
   return (
     <div className="space-y-4">
@@ -31,14 +33,14 @@ export function LandSupplyTable({ data }: LandSupplyTableProps) {
             {processedData.length} Records
           </p>
           {hasActiveFilters && (
-            <Button variant="outline" size="sm" onClick={clearAll} className="h-8 text-xs border-dashed">
+            <Button variant="outline" size="sm" onClick={clearAll} className="h-8 text-xs border-dashed hover:border-destructive hover:text-destructive transition-all">
               <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> Reset
             </Button>
           )}
         </div>
       </div>
       <Card className="border-muted shadow-soft overflow-hidden">
-        <div className="overflow-x-auto relative">
+        <div className="overflow-auto max-h-[calc(100vh-320px)] relative">
           <div className="min-w-[1000px]">
             <Table>
               <TableHeader className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm">
@@ -62,11 +64,11 @@ export function LandSupplyTable({ data }: LandSupplyTableProps) {
                   <TableHead className="w-12" />
                 </TableRow>
                 <TableRow className="bg-background/80 hover:bg-background/80 border-b sticky top-[44px] z-20 shadow-sm">
-                  <TableCell className="p-2"><Input placeholder="Filter address..." className="h-8 text-xs bg-secondary/50 border-none" value={filters.address || ''} onChange={(e) => setFilter('address', e.target.value)} /></TableCell>
-                  <TableCell className="p-2"><Input placeholder="Usage..." className="h-8 text-xs bg-secondary/50 border-none" value={filters.usage || ''} onChange={(e) => setFilter('usage', e.target.value)} /></TableCell>
-                  <TableCell className="p-2"><Input placeholder="Search projects..." className="h-8 text-xs bg-secondary/50 border-none" value={filters.projectName || ''} onChange={(e) => setFilter('projectName', e.target.value)} /></TableCell>
-                  <TableCell className="p-2"><Input placeholder="Area..." className="h-8 text-xs bg-secondary/50 border-none" value={filters.area || ''} onChange={(e) => setFilter('area', e.target.value)} /></TableCell>
-                  <TableCell className="p-2"><Input placeholder="Year..." className="h-8 text-xs bg-secondary/50 border-none" value={filters.year || ''} onChange={(e) => setFilter('year', e.target.value)} /></TableCell>
+                  <TableCell className="p-2"><Input placeholder="Filter address..." className="h-8 text-xs bg-secondary/50 border-none focus-visible:ring-1" value={filters.address || ''} onChange={(e) => setFilter('address', e.target.value)} /></TableCell>
+                  <TableCell className="p-2"><Input placeholder="Usage..." className="h-8 text-xs bg-secondary/50 border-none focus-visible:ring-1" value={filters.usage || ''} onChange={(e) => setFilter('usage', e.target.value)} /></TableCell>
+                  <TableCell className="p-2"><Input placeholder="Search projects..." className="h-8 text-xs bg-secondary/50 border-none focus-visible:ring-1" value={filters.projectName || ''} onChange={(e) => setFilter('projectName', e.target.value)} /></TableCell>
+                  <TableCell className="p-2"><Input placeholder="Area..." className="h-8 text-xs bg-secondary/50 border-none focus-visible:ring-1" value={filters.area || ''} onChange={(e) => setFilter('area', e.target.value)} /></TableCell>
+                  <TableCell className="p-2"><Input placeholder="Year..." className="h-8 text-xs bg-secondary/50 border-none focus-visible:ring-1" value={filters.year || ''} onChange={(e) => setFilter('year', e.target.value)} /></TableCell>
                   <TableCell className="p-2" />
                 </TableRow>
               </TableHeader>
@@ -75,8 +77,8 @@ export function LandSupplyTable({ data }: LandSupplyTableProps) {
                   processedData.map((land) => (
                     <TableRow key={land.id} className="hover:bg-accent/50 transition-colors">
                       <TableCell>
-                        <button 
-                          onClick={() => setSelectedAddress(land.address)} 
+                        <button
+                          onClick={() => setSelectedAddress(land.address)}
                           className="text-primary font-semibold hover:underline decoration-primary/30 underline-offset-4 text-left"
                         >
                           {land.address}

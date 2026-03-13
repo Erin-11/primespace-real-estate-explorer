@@ -41,9 +41,9 @@ export function DepartmentPage() {
       <header className="border-b bg-background/80 backdrop-blur-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4 overflow-hidden">
-            <Link 
-              to="/" 
-              className="p-2 hover:bg-secondary rounded-full transition-all hover:scale-105 active:scale-95" 
+            <Link
+              to="/"
+              className="p-2 hover:bg-secondary rounded-full transition-all hover:scale-105 active:scale-95"
               aria-label="Back to home"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -62,11 +62,12 @@ export function DepartmentPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 lg:py-12">
           <AnimatePresence mode="wait">
             {isLoading ? (
-              <motion.div 
+              <motion.div
                 key="loading"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
                 className="space-y-12"
               >
                  <div className="h-10 w-full max-w-sm bg-muted rounded-lg animate-pulse" />
@@ -77,15 +78,16 @@ export function DepartmentPage() {
                 key="content"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
               >
                 <Tabs defaultValue="properties" className="space-y-8">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-1">
                     <TabsList className="grid w-full sm:w-auto grid-cols-2 lg:grid-cols-3 bg-secondary/50 p-1 h-auto">
-                      <TabsTrigger value="properties" className="py-2.5 px-6 data-[state=active]:shadow-sm">Properties</TabsTrigger>
-                      <TabsTrigger value="land" className="py-2.5 px-6 data-[state=active]:shadow-sm">Land Supply</TabsTrigger>
+                      <TabsTrigger value="properties" className="py-2.5 px-6 data-[state=active]:shadow-md data-[state=active]:bg-background">Properties</TabsTrigger>
+                      <TabsTrigger value="land" className="py-2.5 px-6 data-[state=active]:shadow-md data-[state=active]:bg-background">Land Supply</TabsTrigger>
                       {showValuation && (
-                        <TabsTrigger value="valuation" className="py-2.5 px-6 data-[state=active]:shadow-sm">Valuation</TabsTrigger>
+                        <TabsTrigger value="valuation" className="py-2.5 px-6 data-[state=active]:shadow-md data-[state=active]:bg-background">Valuation</TabsTrigger>
                       )}
                     </TabsList>
                   </div>

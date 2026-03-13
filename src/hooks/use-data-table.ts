@@ -32,13 +32,13 @@ export function useDataTable<T extends Record<string, any>>(data: T[]) {
   const processedData = useMemo(() => {
     if (!data || data.length === 0) return [];
     let result = [...data];
-    // Pre-process filters to avoid repeated object entry lookups
-    const activeFilters = Object.entries(filters).filter(([_, v]) => v !== '');
+    // Filter Logic
+    const activeFilters = Object.entries(filters).filter(([_, v]) => v && v.trim() !== '');
     if (activeFilters.length > 0) {
       result = result.filter((item) => {
         return activeFilters.every(([key, value]) => {
           const itemValue = item[key] != null ? String(item[key]).toLowerCase() : '';
-          const searchValue = value.toLowerCase();
+          const searchValue = value.toLowerCase().trim();
           if (key === 'type' && value !== 'All') {
             return itemValue === searchValue;
           }
@@ -46,21 +46,19 @@ export function useDataTable<T extends Record<string, any>>(data: T[]) {
         });
       });
     }
+    // Sort Logic
     if (sort.key && sort.direction) {
       result.sort((a, b) => {
         const valA = a[sort.key] ?? '';
         const valB = b[sort.key] ?? '';
-        // Natural sort for strings (handles addresses, numbers in strings correctly)
-        if (typeof valA === 'string' && typeof valB === 'string') {
-          const comparison = valA.localeCompare(valB, undefined, { 
-            numeric: true, 
-            sensitivity: 'base' 
-          });
-          return sort.direction === 'asc' ? comparison : -comparison;
-        }
-        if (valA < valB) return sort.direction === 'asc' ? -1 : 1;
-        if (valA > valB) return sort.direction === 'asc' ? 1 : -1;
-        return 0;
+        // Handle numeric-aware natural sorting for strings
+        const strA = String(valA);
+        const strB = String(valB);
+        const comparison = strA.localeCompare(strB, undefined, {
+          numeric: true,
+          sensitivity: 'base'
+        });
+        return sort.direction === 'asc' ? comparison : -comparison;
       });
     }
     return result;
