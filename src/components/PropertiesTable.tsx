@@ -9,6 +9,7 @@ import { MapModal } from '@/components/MapModal';
 import { useDataTable } from '@/hooks/use-data-table';
 import { ArrowUpDown, ArrowUp, ArrowDown, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+const PROPERTY_TYPES = ['All', 'Commercial', 'Residential', 'Retail', 'Hotel', 'Industrial', 'Other'];
 interface PropertiesTableProps {
   data: Property[];
 }
@@ -16,10 +17,9 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
   const { processedData, filters, sort, setFilter, toggleSort, clearAll } = useDataTable(data);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
-    if (sort.key !== columnKey) return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
-    return sort.direction === 'asc' ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />;
+    if (sort.key !== columnKey) return <ArrowUpDown className="ml-2 h-4 w-4 opacity-30" />;
+    return sort.direction === 'asc' ? <ArrowUp className="ml-2 h-4 w-4 text-primary" /> : <ArrowDown className="ml-2 h-4 w-4 text-primary" />;
   };
-  const propertyTypes = ['All', 'Commercial', 'Residential', 'Retail', 'Hotel', 'Industrial', 'Other'];
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -45,7 +45,7 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
                   <TableHead key={col.key} className="whitespace-nowrap">
                     <button
                       onClick={() => toggleSort(col.key)}
-                      className="inline-flex items-center hover:text-foreground transition-colors"
+                      className="inline-flex items-center hover:text-foreground transition-colors py-2"
                     >
                       {col.label}
                       <SortIcon columnKey={col.key} />
@@ -55,23 +55,23 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
                 <TableHead className="w-12"></TableHead>
               </TableRow>
               {/* Filter Row */}
-              <TableRow className="bg-background hover:bg-background border-b shadow-sm z-10 sticky top-[45px]">
-                <TableCell className="p-2"><Input placeholder="Search..." className="h-8 text-xs" value={filters.building || ''} onChange={(e) => setFilter('building', e.target.value)} /></TableCell>
+              <TableRow className="bg-background hover:bg-background border-b shadow-sm z-10 sticky top-[44px]">
+                <TableCell className="p-2"><Input placeholder="Search..." className="h-8 text-xs bg-secondary" value={filters.building || ''} onChange={(e) => setFilter('building', e.target.value)} /></TableCell>
                 <TableCell className="p-2">
                   <Select value={filters.type || 'All'} onValueChange={(v) => setFilter('type', v)}>
-                    <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Type" /></SelectTrigger>
+                    <SelectTrigger className="h-8 text-xs bg-secondary"><SelectValue placeholder="Type" /></SelectTrigger>
                     <SelectContent>
-                      {propertyTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      {PROPERTY_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell className="p-2"><Input placeholder="Floor..." className="h-8 text-xs" value={filters.floorUnit || ''} onChange={(e) => setFilter('floorUnit', e.target.value)} /></TableCell>
-                <TableCell className="p-2"><Input placeholder="Area..." className="h-8 text-xs" value={filters.area || ''} onChange={(e) => setFilter('area', e.target.value)} /></TableCell>
-                <TableCell className="p-2"><Input placeholder="Tenant..." className="h-8 text-xs" value={filters.tenant || ''} onChange={(e) => setFilter('tenant', e.target.value)} /></TableCell>
-                <TableCell className="p-2"><Input placeholder="Landlord..." className="h-8 text-xs" value={filters.landlord || ''} onChange={(e) => setFilter('landlord', e.target.value)} /></TableCell>
-                <TableCell className="p-2"><Input placeholder="Agent..." className="h-8 text-xs" value={filters.agent || ''} onChange={(e) => setFilter('agent', e.target.value)} /></TableCell>
-                <TableCell className="p-2"><Input placeholder="Company..." className="h-8 text-xs" value={filters.company || ''} onChange={(e) => setFilter('company', e.target.value)} /></TableCell>
-                <TableCell className="p-2"><Input placeholder="Contact..." className="h-8 text-xs" value={filters.contacts || ''} onChange={(e) => setFilter('contacts', e.target.value)} /></TableCell>
+                <TableCell className="p-2"><Input placeholder="Floor..." className="h-8 text-xs bg-secondary" value={filters.floorUnit || ''} onChange={(e) => setFilter('floorUnit', e.target.value)} /></TableCell>
+                <TableCell className="p-2"><Input placeholder="Area..." className="h-8 text-xs bg-secondary" value={filters.area || ''} onChange={(e) => setFilter('area', e.target.value)} /></TableCell>
+                <TableCell className="p-2"><Input placeholder="Tenant..." className="h-8 text-xs bg-secondary" value={filters.tenant || ''} onChange={(e) => setFilter('tenant', e.target.value)} /></TableCell>
+                <TableCell className="p-2"><Input placeholder="Landlord..." className="h-8 text-xs bg-secondary" value={filters.landlord || ''} onChange={(e) => setFilter('landlord', e.target.value)} /></TableCell>
+                <TableCell className="p-2"><Input placeholder="Agent..." className="h-8 text-xs bg-secondary" value={filters.agent || ''} onChange={(e) => setFilter('agent', e.target.value)} /></TableCell>
+                <TableCell className="p-2"><Input placeholder="Company..." className="h-8 text-xs bg-secondary" value={filters.company || ''} onChange={(e) => setFilter('company', e.target.value)} /></TableCell>
+                <TableCell className="p-2"><Input placeholder="Contact..." className="h-8 text-xs bg-secondary" value={filters.contacts || ''} onChange={(e) => setFilter('contacts', e.target.value)} /></TableCell>
                 <TableCell className="p-2">
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={clearAll} title="Clear all filters">
                     <RotateCcw className="h-4 w-4" />
