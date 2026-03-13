@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MapModal } from '@/components/MapModal';
+import { toast } from 'sonner';
 import { useDataTable } from '@/hooks/use-data-table';
-import { ArrowUpDown, ArrowUp, ArrowDown, RotateCcw } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, RotateCcw, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 const PROPERTY_TYPES = ['All', 'Commercial', 'Residential', 'Retail', 'Hotel', 'Industrial', 'Other'];
 interface PropertiesTableProps {
@@ -16,6 +17,9 @@ interface PropertiesTableProps {
 export function PropertiesTable({ data }: PropertiesTableProps) {
   const { processedData, filters, sort, setFilter, toggleSort, clearAll } = useDataTable(data);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+  const handleDownload = () => {
+    toast.success("Generating report...", { description: "Your property list export is being prepared." });
+  };
   const hasActiveFilters = Object.values(filters).some(v => v !== '') || sort.direction !== null;
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
     if (sort.key !== columnKey) return <ArrowUpDown className="ml-2 h-4 w-4 opacity-20" />;
@@ -35,6 +39,16 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
             {processedData.length} Records
           </p>
           {hasActiveFilters && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownload}
+                className="h-8 text-xs gap-1.5"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Export
+              </Button>
             <Button
               variant="outline"
               size="sm"
@@ -43,6 +57,13 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
             >
               <RotateCcw className="h-3.5 w-3.5" />
               Reset
+            </Button>
+            </div>
+          )}
+          {!hasActiveFilters && (
+            <Button variant="outline" size="sm" onClick={handleDownload} className="h-8 text-xs gap-1.5">
+              <Download className="h-3.5 w-3.5" />
+              Export
             </Button>
           )}
         </div>
@@ -108,7 +129,7 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
               <TableBody>
                 {processedData.length > 0 ? (
                   processedData.map((property) => (
-                    <TableRow key={property.id} className="hover:bg-accent/50 transition-colors group">
+                    <TableRow key={property.id} className="hover:bg-accent/40 transition-all duration-200 group">
                       <TableCell className="font-semibold whitespace-nowrap">
                         <button
                           onClick={() => setSelectedAddress(property.building)}

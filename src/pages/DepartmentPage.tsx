@@ -9,6 +9,7 @@ import { LandSupplyTable } from '@/components/LandSupplyTable';
 import { ValuationTable } from '@/components/ValuationTable';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { DataTableSkeleton } from '@/components/DataTableSkeleton';
+import { DepartmentStats } from '@/components/DepartmentStats';
 export function DepartmentPage() {
   const { id } = useParams<{ id: string }>();
   const [isLoading, setIsLoading] = useState(true);
@@ -81,7 +82,12 @@ export function DepartmentPage() {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
               >
-                <Tabs defaultValue="properties" className="space-y-8">
+                <DepartmentStats 
+                  properties={MOCK_PROPERTIES[id || ''] || []}
+                  landSupply={MOCK_LAND_SUPPLY[id || ''] || []}
+                  valuations={MOCK_VALUATION[id || ''] || []}
+                />
+                <Tabs defaultValue="properties" className="space-y-6">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-1">
                     <TabsList className="grid w-full sm:w-auto grid-cols-2 lg:grid-cols-3 bg-secondary/50 p-1 h-auto">
                       <TabsTrigger value="properties" className="py-2.5 px-6 data-[state=active]:shadow-md data-[state=active]:bg-background">Properties</TabsTrigger>

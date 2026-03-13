@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MapModal } from '@/components/MapModal';
+import { toast } from 'sonner';
 import { useDataTable } from '@/hooks/use-data-table';
-import { ArrowUpDown, ArrowUp, ArrowDown, RotateCcw } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, RotateCcw, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 interface LandSupplyTableProps {
   data: LandSupply[];
@@ -14,6 +15,9 @@ interface LandSupplyTableProps {
 export function LandSupplyTable({ data }: LandSupplyTableProps) {
   const { processedData, filters, sort, setFilter, toggleSort, clearAll } = useDataTable(data);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+  const handleDownload = () => {
+    toast.success("Preparing land report...", { description: "Exporting development plots." });
+  };
   const hasActiveFilters = Object.values(filters).some(v => v !== '') || sort.direction !== null;
   const SortIcon = ({ columnKey }: { columnKey: string }) => {
     if (sort.key !== columnKey) return <ArrowUpDown className="ml-2 h-4 w-4 opacity-20" />;
@@ -33,8 +37,18 @@ export function LandSupplyTable({ data }: LandSupplyTableProps) {
             {processedData.length} Records
           </p>
           {hasActiveFilters && (
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleDownload} className="h-8 text-xs gap-1.5">
+                <Download className="h-3.5 w-3.5" /> Export
+              </Button>
             <Button variant="outline" size="sm" onClick={clearAll} className="h-8 text-xs border-dashed hover:border-destructive hover:text-destructive transition-all">
               <RotateCcw className="h-3.5 w-3.5 mr-1.5" /> Reset
+            </Button>
+            </div>
+          )}
+          {!hasActiveFilters && (
+            <Button variant="outline" size="sm" onClick={handleDownload} className="h-8 text-xs gap-1.5">
+              <Download className="h-3.5 w-3.5" /> Export
             </Button>
           )}
         </div>
@@ -55,7 +69,7 @@ export function LandSupplyTable({ data }: LandSupplyTableProps) {
                     <TableHead key={col.key} className={cn("whitespace-nowrap h-11", col.width)}>
                       <button
                         onClick={() => toggleSort(col.key)}
-                        className="inline-flex items-center hover:text-foreground transition-colors py-2 font-semibold text-xs uppercase tracking-widest"
+                        className="inline-flex items-center hover:text-foreground transition-colors py-2 font-bold text-xs uppercase tracking-widest"
                       >
                         {col.label} <SortIcon columnKey={col.key} />
                       </button>
@@ -75,7 +89,7 @@ export function LandSupplyTable({ data }: LandSupplyTableProps) {
               <TableBody>
                 {processedData.length > 0 ? (
                   processedData.map((land) => (
-                    <TableRow key={land.id} className="hover:bg-accent/50 transition-colors">
+                    <TableRow key={land.id} className="hover:bg-accent/40 transition-all duration-200">
                       <TableCell>
                         <button
                           onClick={() => setSelectedAddress(land.address)}

@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -30,7 +31,10 @@ export function MapModal({ address, isOpen, onClose }: MapModalProps) {
             <MapPin className="w-4 h-4 text-primary shrink-0" />
             <span className="truncate">{address || 'Location Explorer'}</span>
           </DialogTitle>
-          <a 
+          <DialogDescription className="sr-only">
+            Interactive Google Map showing the location of {address}
+          </DialogDescription>
+          <a
             href={`https://www.google.com/maps/search/?api=1&query=${encodedAddress}`}
             target="_blank"
             rel="noopener noreferrer"
