@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { toRefs, ref } from 'vue';
+import { toRefs, ref, computed } from 'vue';
 import { useDataTable } from '@/composables/useDataTable';
 import { useWatchlistStore } from '@/stores/watchlist';
 import { useRoute } from 'vue-router';
 import { ArrowUpDown, ArrowUp, ArrowDown, Star, MapPin, Copy, Search, Filter } from 'lucide-vue-next';
-import { toast } from 'sonner';
+
 import MapModal from '@/components/MapModal.vue';
 const props = defineProps<{
   data: any[];
@@ -14,7 +14,8 @@ const props = defineProps<{
 const { data } = toRefs(props);
 const route = useRoute();
 const watchlistStore = useWatchlistStore();
-const { processedData, filters, sort, setFilter, toggleSort } = useDataTable(data, props.columns[0].key);
+const defaultSortKey = computed(() => props.columns[0]?.key || 'id');
+const { processedData, filters, sort, setFilter, toggleSort } = useDataTable(data, defaultSortKey.value);
 const selectedAddress = ref<string | null>(null);
 const handleMap = (item: any) => {
   const address = item.building || item.address || item.projectName;
@@ -31,7 +32,7 @@ const toggleBookmark = (item: any) => {
 const copyInfo = (item: any) => {
   const text = `${item.building || item.projectName || item.address}`;
   navigator.clipboard.writeText(text);
-  toast.success('Information copied to clipboard');
+  alert('Information copied!');
 };
 </script>
 <template>

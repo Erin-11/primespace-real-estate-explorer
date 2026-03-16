@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
-import { Toaster } from '@/components/ui/sonner';
+
 onMounted(() => {
   const savedTheme = localStorage.getItem('theme');
   const isDark = savedTheme ? savedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -18,7 +18,6 @@ onMounted(() => {
         <component :is="Component" />
       </transition>
     </router-view>
-    <Toaster position="top-right" />
   </div>
 </template>
 <style>
