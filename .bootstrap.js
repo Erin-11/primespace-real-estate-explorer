@@ -81,7 +81,8 @@ function runSetupCommands() {
     "bun add framer-motion lucide-react clsx tailwind-merge date-fns sonner",
     "bun install vue vue-router pinia @tanstack/vue-query @vitejs/plugin-vue",
     "bun add lucide-vue-next",
-    "bun remove react react-dom react-router-dom @tanstack/react-query @vitejs/plugin-react @types/react @types/react-dom eslint-plugin-react-hooks eslint-plugin-react-refresh"
+    "bun remove react react-dom react-router-dom @tanstack/react-query @vitejs/plugin-react @types/react @types/react-dom eslint-plugin-react-hooks eslint-plugin-react-refresh",
+    "bun add vue@^3.5.12 @vitejs/plugin-vue@^5.1.4 vue-router@^4.4.5 pinia@^2.2.2 @tanstack/vue-query@^5.64.2 lucide-vue-next@^0.523.0"
 ];
     
     if (commands.length === 0) {
