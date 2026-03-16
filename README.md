@@ -1,6 +1,6 @@
 # Cloudflare Workers Full-Stack Chat Demo
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Erin-11/primespace-real-estate-explorer)
 
 A production-ready full-stack chat application demonstrating Cloudflare Workers with Durable Objects for scalable, stateful backend storage, paired with a modern React frontend using shadcn/ui, Tailwind CSS, and TypeScript.
 
@@ -117,7 +117,7 @@ This builds the frontend assets and deploys the Worker globally.
 3. Monitor via Cloudflare dashboard (logs, metrics enabled)
 4. Generate types post-deploy: `bun run cf-typegen`
 
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Erin-11/primespace-real-estate-explorer)
 
 ### Workers Paid Tier
 
