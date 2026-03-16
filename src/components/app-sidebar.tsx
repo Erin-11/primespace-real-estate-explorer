@@ -1,7 +1,8 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
-import { Building2, Landmark, Factory, MapPin, Globe, Briefcase, ChevronRight, BarChart3 } from "lucide-react";
+import { Building2, Landmark, Factory, MapPin, Globe, Briefcase, ChevronRight, BarChart3, Star, Settings } from "lucide-react";
 import { DEPARTMENTS } from "@shared/mock-data";
+import { useWatchlist } from "@/hooks/use-watchlist";
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +15,7 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 const iconMap: Record<string, React.ElementType> = {
   'hong-kong': Globe,
   'kowloon': MapPin,
@@ -24,6 +26,7 @@ const iconMap: Record<string, React.ElementType> = {
 };
 export function AppSidebar(): JSX.Element {
   const { id: currentId } = useParams<{ id: string }>();
+  const { watchlist } = useWatchlist();
   return (
     <Sidebar className="border-r border-border/50">
       <SidebarHeader className="p-4 border-b border-border/40">
@@ -37,7 +40,7 @@ export function AppSidebar(): JSX.Element {
           </div>
         </Link>
       </SidebarHeader>
-      <SidebarContent className="py-6">
+      <SidebarContent className="py-6 space-y-6">
         <SidebarGroup>
           <SidebarGroupLabel className="px-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50 mb-4">
             Regional Departments
@@ -54,8 +57,8 @@ export function AppSidebar(): JSX.Element {
                     tooltip={dept.name}
                     className={cn(
                       "h-11 rounded-lg transition-all duration-200",
-                      isActive 
-                        ? "bg-primary/5 text-primary font-bold shadow-sm" 
+                      isActive
+                        ? "bg-primary/5 text-primary font-bold shadow-sm"
                         : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                     )}
                   >
@@ -75,10 +78,44 @@ export function AppSidebar(): JSX.Element {
             })}
           </SidebarMenu>
         </SidebarGroup>
+        <SidebarGroup>
+          <div className="px-6 mb-4 flex items-center justify-between">
+            <SidebarGroupLabel className="p-0 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">
+              Institutional Watchlist
+            </SidebarGroupLabel>
+            <Badge variant="secondary" className="text-[10px] font-black h-5 px-1.5 rounded-full">
+              {watchlist.length}
+            </Badge>
+          </div>
+          <SidebarMenu className="px-3 space-y-1">
+            {watchlist.length > 0 ? (
+              watchlist.slice(0, 3).map((item) => (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton asChild className="h-10 text-muted-foreground hover:text-foreground">
+                    <Link to={`/department/${item.departmentId}`} className="flex items-center gap-3">
+                      <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                      <span className="text-xs font-medium truncate">{item.building}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))
+            ) : (
+              <p className="px-6 text-[10px] font-bold text-muted-foreground/40 italic">No bookmarked properties</p>
+            )}
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-6 border-t border-border/40">
+        <SidebarMenu className="mb-4">
+          <SidebarMenuItem>
+            <SidebarMenuButton className="h-10 text-muted-foreground hover:text-foreground">
+              <Settings className="h-4 w-4 mr-3" />
+              <span className="text-xs font-bold uppercase tracking-widest">Settings</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <div className="flex flex-col gap-1">
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Terminal v1.4.2</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">Terminal v1.5.0</p>
           <p className="text-[10px] font-bold text-muted-foreground/30">PrimeSpace Analytics Hub</p>
         </div>
       </SidebarFooter>

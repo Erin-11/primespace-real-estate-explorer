@@ -10,37 +10,27 @@ export function useWatchlist() {
     staleTime: 1000 * 60 * 5,
   });
   const addMutation = useMutation({
-    mutationFn: (item: Omit<WatchlistItem, 'timestamp'>) =>
-      api<WatchlistItem>('/api/watchlist', {
-        method: 'POST',
-        body: JSON.stringify(item)
+    mutationFn: (item: Omit<WatchlistItem, 'timestamp'>) => 
+      api<WatchlistItem>('/api/watchlist', { 
+        method: 'POST', 
+        body: JSON.stringify(item) 
       }),
     onSuccess: (newItem) => {
       queryClient.setQueryData(['watchlist'], (old: WatchlistItem[] = []) => [newItem, ...old]);
       toast.success(`Bookmarked ${newItem.building}`);
     },
-    onError: () => {
-      toast.error('Failed to bookmark property');
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
-    }
+    onError: () => toast.error('Failed to bookmark property'),
   });
   const removeMutation = useMutation({
-    mutationFn: (id: string) =>
+    mutationFn: (id: string) => 
       api<{ id: string }> (`/api/watchlist/${id}`, { method: 'DELETE' }),
     onSuccess: (_, id) => {
-      queryClient.setQueryData(['watchlist'], (old: WatchlistItem[] = []) =>
+      queryClient.setQueryData(['watchlist'], (old: WatchlistItem[] = []) => 
         old.filter(item => item.id !== id)
       );
       toast.info('Removed from watchlist');
     },
-    onError: () => {
-      toast.error('Failed to remove from watchlist');
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['watchlist'] });
-    }
+    onError: () => toast.error('Failed to remove from watchlist'),
   });
   const toggleWatchlist = (item: { id: string; building: string; departmentId: string; type: string }) => {
     const exists = watchlist.find(i => i.id === item.id);

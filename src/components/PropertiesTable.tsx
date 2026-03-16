@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Property } from '@shared/mock-data';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from '@/components/ui/select';
@@ -8,7 +9,8 @@ import { Card } from '@/components/ui/card';
 import { MapModal } from '@/components/MapModal';
 import { toast } from 'sonner';
 import { useDataTable } from '@/hooks/use-data-table';
-import { ArrowUpDown, ArrowUp, ArrowDown, RotateCcw, Download, MapPin, Copy } from 'lucide-react';
+import { useWatchlist } from '@/hooks/use-watchlist';
+import { ArrowUpDown, ArrowUp, ArrowDown, RotateCcw, Download, MapPin, Copy, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 const PROPERTY_TYPES = ['All', 'Commercial', 'Residential', 'Retail', 'Hotel', 'Industrial', 'Other'];
@@ -16,7 +18,9 @@ interface PropertiesTableProps {
   data: Property[];
 }
 export function PropertiesTable({ data }: PropertiesTableProps) {
+  const { id: departmentId } = useParams<{ id: string }>();
   const { processedData, filters, sort, setFilter, toggleSort, clearAll } = useDataTable(data, 'building');
+  const { isBookmarked, toggleWatchlist } = useWatchlist();
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const handleDownload = () => {
     toast.success("Report generated", {
@@ -50,7 +54,7 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
         </div>
       </div>
       <Card className="border-border shadow-soft overflow-hidden bg-card/50 backdrop-blur-md">
-        <div className="overflow-auto max-h-[calc(100vh-360px)] relative">
+        <div className="overflow-auto max-h-[calc(100vh-400px)] relative">
           <Table className="min-w-[1500px]">
             <TableHeader className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b">
               <TableRow className="hover:bg-transparent">
@@ -98,44 +102,60 @@ export function PropertiesTable({ data }: PropertiesTableProps) {
             </TableHeader>
             <TableBody>
               {processedData.length > 0 ? (
-                processedData.map((property) => (
-                  <TableRow key={property.id} className="group hover:bg-accent/30 border-b border-border/40 transition-colors">
-                    <TableCell className="px-4 py-3 font-bold text-sm tracking-tight">{property.building}</TableCell>
-                    <TableCell className="px-4 py-3">
-                      <span className="px-2 py-0.5 bg-secondary text-[10px] font-black uppercase tracking-wider rounded-full border">
-                        {property.type}
-                      </span>
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-sm font-medium">{property.floorUnit}</TableCell>
-                    <TableCell className="px-4 py-3 text-sm font-mono tracking-tight text-muted-foreground">{property.area}</TableCell>
-                    <TableCell className="px-4 py-3 text-sm truncate max-w-[180px]">{property.tenant}</TableCell>
-                    <TableCell className="px-4 py-3 text-sm truncate max-w-[180px]">{property.landlord}</TableCell>
-                    <TableCell className="px-4 py-3 text-sm font-medium">{property.agent}</TableCell>
-                    <TableCell className="px-4 py-3 text-xs text-muted-foreground font-medium">{property.contacts}</TableCell>
-                    <TableCell className="px-4 py-3">
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => setSelectedAddress(property.building)}>
-                                <MapPin className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>View Map</TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => copyToClipboard(`${property.building}, ${property.floorUnit}`)}>
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Copy Info</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                processedData.map((property) => {
+                  const saved = isBookmarked(property.id);
+                  return (
+                    <TableRow key={property.id} className="group hover:bg-accent/30 border-b border-border/40 transition-colors">
+                      <TableCell className="px-4 py-3 font-bold text-sm tracking-tight">{property.building}</TableCell>
+                      <TableCell className="px-4 py-3">
+                        <span className="px-2 py-0.5 bg-secondary text-[10px] font-black uppercase tracking-wider rounded-full border">
+                          {property.type}
+                        </span>
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-sm font-medium">{property.floorUnit}</TableCell>
+                      <TableCell className="px-4 py-3 text-sm font-mono tracking-tight text-muted-foreground">{property.area}</TableCell>
+                      <TableCell className="px-4 py-3 text-sm truncate max-w-[180px]">{property.tenant}</TableCell>
+                      <TableCell className="px-4 py-3 text-sm truncate max-w-[180px]">{property.landlord}</TableCell>
+                      <TableCell className="px-4 py-3 text-sm font-medium">{property.agent}</TableCell>
+                      <TableCell className="px-4 py-3 text-xs text-muted-foreground font-medium">{property.contacts}</TableCell>
+                      <TableCell className="px-4 py-3">
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  className={cn("h-8 w-8 transition-all", saved ? "text-amber-500 fill-amber-500" : "text-muted-foreground hover:text-amber-500")}
+                                  onClick={() => toggleWatchlist({ id: property.id, building: property.building, departmentId: departmentId || '', type: property.type })}
+                                >
+                                  <Star className={cn("h-4 w-4", saved && "fill-current")} />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>{saved ? 'Remove Bookmark' : 'Bookmark Property'}</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => setSelectedAddress(property.building)}>
+                                  <MapPin className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>View Map</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => copyToClipboard(`${property.building}, ${property.floorUnit}`)}>
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Copy Info</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={9} className="h-64 text-center text-muted-foreground font-medium">No records found matching criteria.</TableCell>
