@@ -9,6 +9,14 @@ export default [
   ...tseslint.configs.recommended,
   ...pluginVue.configs['flat/recommended'],
   {
+    files: ['**/*.vue'],
+    languageOptions: {
+      parserOptions: {
+        parser: tseslint.parser
+      }
+    }
+  },
+  {
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.browser,
