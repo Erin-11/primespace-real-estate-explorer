@@ -78,7 +78,8 @@ function updateWranglerJsonc() {
 
 function runSetupCommands() {
     const commands = [
-    "bun add framer-motion lucide-react clsx tailwind-merge date-fns sonner"
+    "bun add framer-motion lucide-react clsx tailwind-merge date-fns sonner",
+    "bun install vue vue-router pinia @tanstack/vue-query @vitejs/plugin-vue"
 ];
     
     if (commands.length === 0) {
