@@ -54,7 +54,7 @@ onMounted(() => {
             :key="dept.id"
             :to="`/department/${dept.id}`"
             :class="[
-              'flex items-center gap-3 px-3 h-10 rounded-lg transition-all duration-200 group relative',
+              'flex items-center gap-3 px-3 h-10 rounded-lg transition-all duration-200 group relative pointer-events-auto',
               route.params.id === dept.id ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
             ]"
           >
@@ -77,7 +77,7 @@ onMounted(() => {
             v-for="item in watchlistStore.watchlist.slice(0, 8)"
             :key="item.id"
             :to="`/department/${item.departmentId}`"
-            class="flex items-center gap-3 px-3 h-9 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all"
+            class="flex items-center gap-3 px-3 h-9 rounded-lg text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all pointer-events-auto"
           >
             <Star class="h-3 w-3 text-amber-500 shrink-0" :class="watchlistStore.isBookmarked(item.id) ? 'fill-amber-500' : ''" />
             <span v-if="uiStore.isSidebarOpen" class="text-[11px] font-medium truncate flex-1">{{ item.building }}</span>

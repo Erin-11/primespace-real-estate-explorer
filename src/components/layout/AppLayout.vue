@@ -16,11 +16,11 @@ const uiStore = useUiStore();
     <div 
       :class="[
         'transition-all duration-300 ease-in-out min-h-screen relative flex flex-col',
-        uiStore.isSidebarOpen ? 'md:pl-64' : 'md:pl-16'
+        uiStore.isSidebarOpen ? 'md:pl-64' : 'md:pl-[68px]'
       ]"
     >
       <!-- Top Actions Bar -->
-      <header class="h-14 flex items-center justify-between px-4 sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border/40">
+      <header class="h-14 flex items-center justify-between px-4 sticky top-0 z-20 bg-background/80 backdrop-blur-md border-b border-border/40">
         <button 
           @click="uiStore.toggleSidebar()"
           class="p-2 hover:bg-secondary rounded-lg transition-colors md:hidden"
