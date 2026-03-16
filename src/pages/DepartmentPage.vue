@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout.vue';
 import DepartmentStats from '@/components/DepartmentStats.vue';
 import DataTable from '@/components/DataTable.vue';
 import DataTableSkeleton from '@/components/DataTableSkeleton.vue';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Tabs, { TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs.vue';
 const route = useRoute();
 const id = computed(() => route.params.id as string);
 const department = computed(() => DEPARTMENTS.find(d => d.id === id.value));
@@ -17,8 +17,10 @@ const valuations = computed(() => MOCK_VALUATION[id.value] || []);
 const showValuation = computed(() => department.value?.id !== 'hong-kong' && department.value?.id !== 'kowloon');
 watch(id, () => {
   isLoading.value = true;
-  // Simulated refined hydration delay
-  setTimeout(() => isLoading.value = false, 400);
+  // Simulated hydration delay for visual polish
+  setTimeout(() => {
+    isLoading.value = false;
+  }, 350);
 }, { immediate: true });
 const propertyCols = [
   { key: 'building', label: 'Building', width: 'w-[280px]' },
@@ -68,13 +70,13 @@ const valuationCols = [
         />
         <Tabs default-value="properties" class="space-y-10">
           <TabsList class="bg-secondary/50 p-1 rounded-xl h-auto flex flex-wrap gap-1">
-            <TabsTrigger value="properties" class="flex-1 py-2.5 px-6 text-[10px] font-black uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg">
+            <TabsTrigger value="properties" class="flex-1 py-2.5 px-6 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg">
               Asset Inventory
             </TabsTrigger>
-            <TabsTrigger value="land" class="flex-1 py-2.5 px-6 text-[10px] font-black uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg">
+            <TabsTrigger value="land" class="flex-1 py-2.5 px-6 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg">
               Development Land
             </TabsTrigger>
-            <TabsTrigger v-if="showValuation" value="valuation" class="flex-1 py-2.5 px-6 text-[10px] font-black uppercase tracking-widest transition-all data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-lg">
+            <TabsTrigger v-if="showValuation" value="valuation" class="flex-1 py-2.5 px-6 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg">
               Valuation Data
             </TabsTrigger>
           </TabsList>
@@ -92,7 +94,7 @@ const valuationCols = [
     </div>
     <div v-else class="flex flex-col items-center justify-center min-h-[60vh] text-center">
       <h2 class="text-2xl font-bold mb-2">Department Not Found</h2>
-      <router-link to="/" class="text-primary hover:underline">Return to Home</router-link>
+      <router-link to="/" class="text-primary hover:underline font-bold uppercase text-xs tracking-widest">Return to Home</router-link>
     </div>
   </AppLayout>
 </template>

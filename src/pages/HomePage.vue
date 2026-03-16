@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { motion } from 'framer-motion';
 import { Building2, Landmark, Factory, MapPin, Globe, Briefcase, ArrowRight } from 'lucide-vue-next';
 import { DEPARTMENTS } from '@shared/mock-data';
 import AppLayout from '@/components/layout/AppLayout.vue';
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import Card, { CardHeader, CardTitle, CardDescription } from '@/components/ui/Card.vue';
 const router = useRouter();
 const iconMap: Record<string, any> = {
   'hong-kong': Globe,
@@ -18,7 +17,7 @@ const iconMap: Record<string, any> = {
 <template>
   <AppLayout>
     <div class="relative min-h-screen flex flex-col overflow-hidden">
-      <div class="absolute inset-0 bg-gradient-mesh opacity-[0.03] dark:opacity-[0.07] pointer-events-none" />
+      <div class="absolute inset-0 bg-gradient-mesh opacity-[0.05] dark:opacity-[0.1] pointer-events-none" />
       <main class="flex-1 flex flex-col items-center">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 md:pt-32 md:pb-24 text-center">
           <div class="space-y-8">
@@ -33,13 +32,13 @@ const iconMap: Record<string, any> = {
               Prime<span class="text-gradient">Space</span>
             </h1>
             <p class="text-body max-w-2xl mx-auto text-xl md:text-2xl font-medium tracking-tight opacity-80">
-              High-performance property exploration. <br class="hidden sm:block" />
-              Institutional-grade Vue 3 architecture.
+              Institutional-grade property exploration. <br class="hidden sm:block" />
+              Powered by pure Vue 3 high-performance edge.
             </p>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-24 w-full">
-            <div 
-              v-for="dept in DEPARTMENTS" 
+            <div
+              v-for="dept in DEPARTMENTS"
               :key="dept.id"
               class="group cursor-pointer h-full"
               @click="router.push(`/department/${dept.id}`)"
