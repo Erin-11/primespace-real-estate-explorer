@@ -45,7 +45,7 @@ export function DepartmentPage() {
   const valuations = MOCK_VALUATION[id || ''] || [];
   return (
     <AppLayout container contentClassName="py-0">
-      <div className="space-y-8">
+      <div className="space-y-10">
         <AnimatePresence mode="wait">
           {isLoading ? (
             <motion.div
@@ -71,11 +71,13 @@ export function DepartmentPage() {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             >
-              <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-1">Institutional Intelligence</p>
-                  <h1 className="text-4xl font-black tracking-tighter">
-                    {department.name} <span className="text-muted-foreground/30">/</span> Explorer
+              <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div className="space-y-2">
+                  <p className="text-[11px] font-black uppercase tracking-[0.4em] text-primary leading-none">
+                    Institutional Intelligence
+                  </p>
+                  <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none">
+                    {department.name} <span className="text-muted-foreground/20">/</span> Explorer
                   </h1>
                 </div>
               </div>
@@ -84,25 +86,31 @@ export function DepartmentPage() {
                 landSupply={landSupply}
                 valuations={valuations}
               />
-              <Tabs defaultValue="properties" className="space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/50 pb-1">
-                  <TabsList className="grid w-full sm:w-auto grid-cols-2 lg:grid-cols-3 bg-secondary/50 p-1 h-auto">
-                    <TabsTrigger value="properties" className="py-2.5 px-6 font-semibold data-[state=active]:shadow-sm data-[state=active]:bg-background">Properties</TabsTrigger>
-                    <TabsTrigger value="land" className="py-2.5 px-6 font-semibold data-[state=active]:shadow-sm data-[state=active]:bg-background">Land Supply</TabsTrigger>
+              <Tabs defaultValue="properties" className="space-y-8">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-1">
+                  <TabsList className="grid w-full sm:w-auto grid-cols-2 lg:grid-cols-3 bg-secondary/60 p-1 h-auto rounded-lg">
+                    <TabsTrigger value="properties" className="py-2 px-8 text-xs font-bold uppercase tracking-widest data-[state=active]:shadow-sm data-[state=active]:bg-background transition-all">
+                      Properties
+                    </TabsTrigger>
+                    <TabsTrigger value="land" className="py-2 px-8 text-xs font-bold uppercase tracking-widest data-[state=active]:shadow-sm data-[state=active]:bg-background transition-all">
+                      Land Supply
+                    </TabsTrigger>
                     {showValuation && (
-                      <TabsTrigger value="valuation" className="py-2.5 px-6 font-semibold data-[state=active]:shadow-sm data-[state=active]:bg-background">Valuation</TabsTrigger>
+                      <TabsTrigger value="valuation" className="py-2 px-8 text-xs font-bold uppercase tracking-widest data-[state=active]:shadow-sm data-[state=active]:bg-background transition-all">
+                        Valuation
+                      </TabsTrigger>
                     )}
                   </TabsList>
                 </div>
-                <div className="mt-6">
-                  <TabsContent value="properties" className="mt-0 focus-visible:outline-none focus:outline-none">
+                <div className="mt-8">
+                  <TabsContent value="properties" className="mt-0 ring-offset-background focus-visible:outline-none">
                     <PropertiesTable data={properties} />
                   </TabsContent>
-                  <TabsContent value="land" className="mt-0 focus-visible:outline-none focus:outline-none">
+                  <TabsContent value="land" className="mt-0 ring-offset-background focus-visible:outline-none">
                     <LandSupplyTable data={landSupply} />
                   </TabsContent>
                   {showValuation && (
-                    <TabsContent value="valuation" className="mt-0 focus-visible:outline-none focus:outline-none">
+                    <TabsContent value="valuation" className="mt-0 ring-offset-background focus-visible:outline-none">
                       <ValuationTable data={valuations} />
                     </TabsContent>
                   )}

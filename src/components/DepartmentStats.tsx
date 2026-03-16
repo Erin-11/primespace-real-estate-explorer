@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { motion, useSpring, useTransform, animate } from 'framer-motion';
+import { motion, animate } from 'framer-motion';
 import { Hash, Maximize2, Activity, Info } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Property, LandSupply, Valuation } from '@shared/mock-data';
@@ -11,8 +11,8 @@ function Counter({ value, decimals = 0 }: { value: number; decimals?: number }) 
     const controls = animate(0, value, {
       duration: 1.5,
       ease: [0.16, 1, 0.3, 1],
-      onUpdate(value) {
-        setDisplayValue(value);
+      onUpdate(v) {
+        setDisplayValue(v);
       },
     });
     return () => controls.stop();
@@ -32,11 +32,14 @@ export function DepartmentStats({
   const stats = useMemo(() => {
     const parseArea = (areaStr: string | number | undefined | null) => {
       if (!areaStr) return 0;
-      const match = String(areaStr).replace(/,/g, '').match(/[\d.]+/);
+      const s = String(areaStr).toLowerCase().replace(/,/g, '').trim();
+      if (s === 'n/a' || s === 'unknown' || s === '-') return 0;
+      const match = s.match(/[\d.]+/);
       if (!match) return 0;
       let val = parseFloat(match[0]);
       if (isNaN(val)) return 0;
-      if (String(areaStr).toLowerCase().includes('sqm')) return val * 10.7639;
+      // Convert SQM to SQFT if detected
+      if (s.includes('sqm') || s.includes('m2')) return val * 10.7639;
       return val;
     };
     const propArea = properties.reduce((acc, p) => acc + parseArea(p.area), 0);
@@ -64,10 +67,10 @@ export function DepartmentStats({
         color: 'text-orange-500'
       },
       {
-        label: 'Institutional Asset Avg',
+        label: 'Avg Asset Footprint',
         value: avgArea,
         unit: 'SQFT',
-        subtext: 'Mean asset footprint',
+        subtext: 'Mean asset size across categories',
         info: 'The average floor area per record across all database categories.',
         icon: <Activity className="w-4 h-4" />,
         color: 'text-emerald-500'
@@ -76,7 +79,7 @@ export function DepartmentStats({
   }, [properties, landSupply, valuations]);
   return (
     <TooltipProvider>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         {stats.map((stat, idx) => (
           <motion.div
             key={stat.label}
