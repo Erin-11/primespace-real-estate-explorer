@@ -27,7 +27,7 @@ onMounted(() => {
   <aside
     :class="[
       'fixed inset-y-0 left-0 z-40 bg-background border-r border-border/50 transition-all duration-300 ease-in-out flex flex-col',
-      uiStore.isSidebarOpen ? 'w-64 translate-x-0' : 'w-16 translate-x-0 sm:translate-x-0 -translate-x-full sm:w-16'
+      uiStore.isSidebarOpen ? 'w-64 translate-x-0' : 'w-64 -translate-x-full md:translate-x-0 md:w-16'
     ]"
   >
     <!-- Header -->
@@ -57,7 +57,6 @@ onMounted(() => {
               'flex items-center gap-3 px-3 h-10 rounded-lg transition-all duration-200 group relative',
               route.params.id === dept.id ? 'bg-secondary text-foreground' : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
             ]"
-            v-tooltip="!uiStore.isSidebarOpen ? dept.name : ''"
           >
             <component :is="iconMap[dept.id] || Briefcase" :class="['h-4 w-4 shrink-0', route.params.id === dept.id ? 'text-primary' : '']" />
             <span v-if="uiStore.isSidebarOpen" class="text-xs font-bold tracking-tight truncate flex-1">{{ dept.name }}</span>
