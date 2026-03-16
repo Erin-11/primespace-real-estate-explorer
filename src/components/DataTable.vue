@@ -4,7 +4,6 @@ import { useDataTable } from '@/composables/useDataTable';
 import { useWatchlistStore } from '@/stores/watchlist';
 import { useRoute } from 'vue-router';
 import { ArrowUpDown, ArrowUp, ArrowDown, Star, MapPin, Copy, Search, Filter } from 'lucide-vue-next';
-
 import MapModal from '@/components/MapModal.vue';
 const props = defineProps<{
   data: any[];
@@ -57,7 +56,6 @@ const copyInfo = (item: any) => {
               </th>
               <th class="w-[140px] px-4 font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Actions</th>
             </tr>
-            <!-- Filter Row -->
             <tr class="bg-muted/30 border-b border-border">
               <td v-for="col in columns" :key="col.key" class="p-2">
                 <div class="relative group">
@@ -77,9 +75,9 @@ const copyInfo = (item: any) => {
             </tr>
           </thead>
           <tbody class="divide-y divide-border/40">
-            <tr 
-              v-for="item in processedData" 
-              :key="item.id" 
+            <tr
+              v-for="item in processedData"
+              :key="item.id"
               class="group hover:bg-primary/[0.02] transition-colors"
             >
               <td v-for="col in columns" :key="col.key" class="px-4 py-3.5 text-xs font-semibold tracking-tight text-foreground/90">
@@ -99,15 +97,15 @@ const copyInfo = (item: any) => {
                   >
                     <Star class="h-4 w-4" :class="watchlistStore.isBookmarked(item.id) ? 'fill-current' : ''" />
                   </button>
-                  <button 
-                    class="p-1.5 hover:bg-primary/10 text-primary rounded-md transition-all" 
+                  <button
+                    class="p-1.5 hover:bg-primary/10 text-primary rounded-md transition-all"
                     @click="handleMap(item)"
                     title="View Map"
                   >
                     <MapPin class="h-4 w-4" />
                   </button>
-                  <button 
-                    class="p-1.5 hover:bg-secondary rounded-md text-muted-foreground hover:text-foreground transition-all" 
+                  <button
+                    class="p-1.5 hover:bg-secondary rounded-md text-muted-foreground hover:text-foreground transition-all"
                     @click="copyInfo(item)"
                     title="Copy Info"
                   >

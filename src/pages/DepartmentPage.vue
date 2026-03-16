@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout.vue';
 import DepartmentStats from '@/components/DepartmentStats.vue';
 import DataTable from '@/components/DataTable.vue';
 import DataTableSkeleton from '@/components/DataTableSkeleton.vue';
-import Tabs, { TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs.vue';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 const route = useRoute();
 const id = computed(() => route.params.id as string);
 const department = computed(() => DEPARTMENTS.find(d => d.id === id.value));
@@ -17,7 +17,6 @@ const valuations = computed(() => MOCK_VALUATION[id.value] || []);
 const showValuation = computed(() => department.value?.id !== 'hong-kong' && department.value?.id !== 'kowloon');
 watch(id, () => {
   isLoading.value = true;
-  // Simulated hydration delay for visual polish
   setTimeout(() => {
     isLoading.value = false;
   }, 350);

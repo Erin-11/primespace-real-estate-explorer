@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router';
 import { Building2, Landmark, Factory, MapPin, Globe, Briefcase, ArrowRight } from 'lucide-vue-next';
 import { DEPARTMENTS } from '@shared/mock-data';
 import AppLayout from '@/components/layout/AppLayout.vue';
-import Card, { CardHeader, CardTitle, CardDescription } from '@/components/ui/Card.vue';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 const router = useRouter();
 const iconMap: Record<string, any> = {
   'hong-kong': Globe,
