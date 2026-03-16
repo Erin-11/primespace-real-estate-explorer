@@ -3,28 +3,29 @@ import { motion } from 'framer-motion';
 import { Hash, Maximize2, Activity } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Property, LandSupply, Valuation } from '@shared/mock-data';
+import { cn } from '@/lib/utils';
 interface DepartmentStatsProps {
   properties?: Property[];
   landSupply?: LandSupply[];
   valuations?: Valuation[];
 }
-export function DepartmentStats({ 
-  properties = [], 
-  landSupply = [], 
-  valuations = [] 
+export function DepartmentStats({
+  properties = [],
+  landSupply = [],
+  valuations = []
 }: DepartmentStatsProps) {
   const stats = useMemo(() => {
     // Robust area parser handling various institutional formats
     const parseArea = (areaStr: string | number | undefined | null) => {
       if (areaStr === undefined || areaStr === null) return 0;
       const str = String(areaStr).toLowerCase();
-      // Extract numeric value, handling commas and decimals
-      const match = str.match(/[\d,.]+/);
+      // Extract numeric value, handling commas, decimals, and multiple segments
+      const match = str.replace(/,/g, '').match(/[\d.]+/);
       if (!match) return 0;
-      let val = parseFloat(match[0].replace(/,/g, ''));
+      let val = parseFloat(match[0]);
       if (isNaN(val)) return 0;
       // Handle simple conversion if needed (baseline is sqft)
-      if (str.includes('sqm') || str.includes('sq m')) {
+      if (str.includes('sqm') || str.includes('sq m') || str.includes('m²')) {
         return val * 10.7639; // Convert sqm to sqft for consistency
       }
       return val;
@@ -68,8 +69,8 @@ export function DepartmentStats({
           key={stat.label}
           initial={{ opacity: 0, scale: 0.98, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ 
-            delay: idx * 0.08, 
+          transition={{
+            delay: idx * 0.08,
             duration: 0.5,
             ease: [0.16, 1, 0.3, 1]
           }}
