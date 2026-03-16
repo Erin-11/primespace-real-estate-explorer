@@ -3,7 +3,16 @@ import { toRefs, ref, computed } from 'vue';
 import { useDataTable } from '@/composables/useDataTable';
 import { useWatchlistStore } from '@/stores/watchlist';
 import { useRoute } from 'vue-router';
-import { ArrowUpDown, ArrowUp, ArrowDown, Star, MapPin, Copy, Search, Filter } from 'lucide-vue-next';
+import { 
+  ArrowUpDown, 
+  ArrowUp, 
+  ArrowDown, 
+  Star, 
+  MapPin, 
+  Copy, 
+  Search, 
+  Filter 
+} from 'lucide-vue-next';
 import MapModal from '@/components/MapModal.vue';
 const props = defineProps<{
   data: any[];
@@ -31,7 +40,8 @@ const toggleBookmark = (item: any) => {
 const copyInfo = (item: any) => {
   const text = `${item.building || item.projectName || item.address}`;
   navigator.clipboard.writeText(text);
-  alert('Information copied!');
+  // Using simple alert as toast/sonner integration might vary in setup
+  alert('Information copied to clipboard');
 };
 </script>
 <template>
@@ -62,7 +72,7 @@ const copyInfo = (item: any) => {
                   <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground/50 group-hover:text-primary transition-colors" />
                   <input
                     type="text"
-                    :placeholder="`Filter...`"
+                    :placeholder="`Filter ${col.label}...`"
                     class="w-full h-8 pl-8 pr-3 text-[11px] bg-background border border-border/50 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all font-medium"
                     :value="filters[col.key]"
                     @input="(e: any) => setFilter(col.key, e.target.value)"

@@ -25,5 +25,5 @@
     }
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
-  "exclude": ["src/**/*.tsx"]
+  "exclude": ["src/**/*.tsx", "src/**/*.jsx"]
 }
