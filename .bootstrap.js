@@ -83,7 +83,7 @@ function runSetupCommands() {
     "bun add lucide-vue-next",
     "bun remove react react-dom react-router-dom @tanstack/react-query @vitejs/plugin-react @types/react @types/react-dom eslint-plugin-react-hooks eslint-plugin-react-refresh",
     "bun add vue@^3.5.12 vue-router@^4.5.0 pinia@^2.2.4 lucide-vue-next@^0.525.0 @tanstack/vue-query@^5.79.1",
-    "bun add -D @vitejs/plugin-vue@^6.0.6 eslint-plugin-vue@^9.29.0"
+    "bun add -D @vitejs/plugin-vue eslint-plugin-vue"
 ];
     
     if (commands.length === 0) {
