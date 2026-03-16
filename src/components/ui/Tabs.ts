@@ -1,4 +1,4 @@
-import { h, defineComponent, provide, inject, ref, watch, computed, type PropType, type Ref } from 'vue';
+import { h, defineComponent, provide, inject, ref, watch, computed, type Ref } from 'vue';
 import { cn } from '@/lib/utils';
 const TabsContextSymbol = Symbol('TabsContext');
 interface TabsContext {
@@ -6,7 +6,7 @@ interface TabsContext {
   setActiveTab: (value: string) => void;
 }
 export const Tabs = defineComponent({
-  name: 'Tabs',
+  name: 'PrimeTabs',
   props: {
     defaultValue: { type: String, required: true },
     class: { type: String, default: '' }
@@ -24,7 +24,7 @@ export const Tabs = defineComponent({
   }
 });
 export const TabsList = defineComponent({
-  name: 'TabsList',
+  name: 'PrimeTabsList',
   props: {
     class: { type: String, default: '' }
   },
@@ -35,7 +35,7 @@ export const TabsList = defineComponent({
   }
 });
 export const TabsTrigger = defineComponent({
-  name: 'TabsTrigger',
+  name: 'PrimeTabsTrigger',
   props: {
     value: { type: String, required: true },
     class: { type: String, default: '' }
@@ -57,7 +57,7 @@ export const TabsTrigger = defineComponent({
   }
 });
 export const TabsContent = defineComponent({
-  name: 'TabsContent',
+  name: 'PrimeTabsContent',
   props: {
     value: { type: String, required: true },
     class: { type: String, default: '' }
