@@ -14,13 +14,13 @@ export function useDataTable<T extends Record<string, any>>(data: T[]) {
   }, []);
   const toggleSort = useCallback((key: string) => {
     setSort((prev) => {
-      if (prev.key !== key || prev.direction === null) {
-        return { key, direction: 'asc' };
+      // If we're already sorting by this key, cycle through states
+      if (prev.key === key) {
+        if (prev.direction === 'asc') return { key, direction: 'desc' };
+        if (prev.direction === 'desc') return { key: '', direction: null };
       }
-      if (prev.direction === 'asc') {
-        return { key, direction: 'desc' };
-      }
-      return { key: '', direction: null };
+      // New key or starting fresh
+      return { key, direction: 'asc' };
     });
   }, []);
   const clearAll = useCallback(() => {
@@ -28,38 +28,45 @@ export function useDataTable<T extends Record<string, any>>(data: T[]) {
     setSort({ key: '', direction: null });
   }, []);
   const processedData = useMemo(() => {
-    if (!Array.isArray(data) || data.length === 0) return [];
+    if (!Array.isArray(data)) return [];
+    if (data.length === 0) return [];
     let result = [...data];
-    // Filter Logic
-    const activeFilters = Object.entries(filters).filter(([_, v]) => v != null && String(v).trim() !== '');
-    if (activeFilters.length > 0) {
+    // Filter Logic: Institutional Grade Multi-column matching
+    const activeFilterEntries = Object.entries(filters).filter(
+      ([_, v]) => v !== undefined && v !== null && String(v).trim() !== ''
+    );
+    if (activeFilterEntries.length > 0) {
       result = result.filter((item) => {
-        return activeFilters.every(([key, value]) => {
-          const itemValue = item[key] != null ? String(item[key]).toLowerCase() : '';
+        return activeFilterEntries.every(([key, value]) => {
+          if (!item || item[key] === undefined || item[key] === null) return false;
+          const itemValue = String(item[key]).toLowerCase().trim();
           const searchValue = String(value).toLowerCase().trim();
+          // Special handling for categorical "Type" filter
           if (key === 'type' && searchValue !== 'all') {
             return itemValue === searchValue;
           }
+          // General case: substring match
           return itemValue.includes(searchValue);
         });
       });
     }
-    // Sort Logic
+    // Sort Logic: Robust natural numeric sorting (e.g., floor 10 > floor 2)
     if (sort.key && sort.direction) {
       result.sort((a, b) => {
-        const valA = a[sort.key] ?? '';
-        const valB = b[sort.key] ?? '';
-        // Handle numeric-aware natural sorting for strings
-        const strA = String(valA);
-        const strB = String(valB);
+        const valA = a[sort.key];
+        const valB = b[sort.key];
+        // Ensure we're comparing strings safely
+        const strA = valA === null || valA === undefined ? '' : String(valA);
+        const strB = valB === null || valB === undefined ? '' : String(valB);
         try {
-          const comparison = strA.localeCompare(strB, undefined, {
+          // Use Intl.Collator for high-performance, locale-aware, numeric-sensitive sorting
+          const comparison = new Intl.Collator(undefined, {
             numeric: true,
             sensitivity: 'base'
-          });
+          }).compare(strA, strB);
           return sort.direction === 'asc' ? comparison : -comparison;
         } catch (e) {
-          console.warn('Sorting error for key:', sort.key, e);
+          console.error('[DataTable Engine] Sorting crash for key:', sort.key, e);
           return 0;
         }
       });
