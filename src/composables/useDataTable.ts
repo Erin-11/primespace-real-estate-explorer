@@ -30,8 +30,9 @@ export function useDataTable<T extends Record<string, any>>(data: Ref<T[]>, init
     if (activeFilters.length > 0) {
       result = result.filter((item) => {
         return activeFilters.every(([key, value]) => {
-          const itemVal = String(item[key] ?? '').toLowerCase();
+          const itemVal = String(item[key] || '').toLowerCase();
           const searchVal = value.toLowerCase();
+          if (key === 'type' && searchVal !== 'all') return itemVal === searchVal;
           return itemVal.includes(searchVal);
         });
       });
@@ -40,9 +41,7 @@ export function useDataTable<T extends Record<string, any>>(data: Ref<T[]>, init
     if (sort.value.key) {
       const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
       result.sort((a, b) => {
-        const valA = String(a[sort.value.key] ?? '');
-        const valB = String(b[sort.value.key] ?? '');
-        const res = collator.compare(valA, valB);
+        const res = collator.compare(String(a[sort.value.key] || ''), String(b[sort.value.key] || ''));
         return sort.value.direction === 'asc' ? res : -res;
       });
     }

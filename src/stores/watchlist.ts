@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { api } from '@/lib/api-client';
 import type { WatchlistItem } from '@shared/types';
+import { toast } from 'sonner';
 export const useWatchlistStore = defineStore('watchlist', () => {
   const watchlist = ref<WatchlistItem[]>([]);
   const isLoading = ref(false);
@@ -22,9 +23,9 @@ export const useWatchlistStore = defineStore('watchlist', () => {
       try {
         await api(`/api/watchlist/${item.id}`, { method: 'DELETE' });
         watchlist.value = watchlist.value.filter((i) => i.id !== item.id);
-        alert(`Removed ${item.building} from watchlist`);
+        toast.info(`Removed ${item.building} from watchlist`);
       } catch (e) {
-        alert('Failed to remove bookmark');
+        toast.error('Failed to remove bookmark');
       }
     } else {
       try {
@@ -33,9 +34,9 @@ export const useWatchlistStore = defineStore('watchlist', () => {
           body: JSON.stringify(item),
         });
         watchlist.value = [newItem, ...watchlist.value];
-        alert(`Bookmarked ${item.building}`);
+        toast.success(`Bookmarked ${item.building}`);
       } catch (e) {
-        alert('Failed to bookmark property');
+        toast.error('Failed to bookmark property');
       }
     }
   }
