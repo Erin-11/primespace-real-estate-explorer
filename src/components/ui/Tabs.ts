@@ -1,4 +1,4 @@
-import { h, defineComponent, provide, inject, ref, watch, computed, type Ref } from 'vue';
+import { h, defineComponent, provide, inject, ref, watch, computed, type Ref, type SetupContext } from 'vue';
 import { cn } from '@/lib/utils';
 const TabsContextSymbol = Symbol('TabsContext');
 interface TabsContext {
@@ -11,14 +11,16 @@ export const Tabs = defineComponent({
     defaultValue: { type: String, required: true },
     class: { type: String, default: '' }
   },
-  setup(props, { slots }) {
+  setup(props: { defaultValue: string; class?: string }, { slots }: SetupContext) {
     const activeTab = ref(props.defaultValue);
     watch(() => props.defaultValue, (val) => {
       activeTab.value = val;
     });
     provide(TabsContextSymbol, {
       activeTab,
-      setActiveTab: (val: string) => { activeTab.value = val; }
+      setActiveTab: (val: string) => {
+        activeTab.value = val;
+      }
     });
     return () => h('div', { class: props.class }, slots.default?.());
   }
@@ -28,7 +30,7 @@ export const TabsList = defineComponent({
   props: {
     class: { type: String, default: '' }
   },
-  setup(props, { slots }) {
+  setup(props: { class?: string }, { slots }: SetupContext) {
     return () => h('div', {
       class: cn('inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground', props.class)
     }, slots.default?.());
@@ -40,8 +42,9 @@ export const TabsTrigger = defineComponent({
     value: { type: String, required: true },
     class: { type: String, default: '' }
   },
-  setup(props, { slots }) {
+  setup(props: { value: string; class?: string }, { slots }: SetupContext) {
     const context = inject(TabsContextSymbol) as TabsContext;
+    if (!context) throw new Error('TabsTrigger must be used within Tabs');
     const isActive = computed(() => context.activeTab.value === props.value);
     return () => h('button', {
       type: 'button',
@@ -50,7 +53,9 @@ export const TabsTrigger = defineComponent({
       onClick: () => context.setActiveTab(props.value),
       class: cn(
         'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-        isActive.value ? 'bg-background text-foreground shadow-sm' : 'hover:bg-background/50',
+        isActive.value
+          ? 'bg-primary text-primary-foreground shadow-sm'
+          : 'hover:bg-background/50',
         props.class
       )
     }, slots.default?.());
@@ -62,8 +67,9 @@ export const TabsContent = defineComponent({
     value: { type: String, required: true },
     class: { type: String, default: '' }
   },
-  setup(props, { slots }) {
+  setup(props: { value: string; class?: string }, { slots }: SetupContext) {
     const context = inject(TabsContextSymbol) as TabsContext;
+    if (!context) throw new Error('TabsContent must be used within Tabs');
     const isActive = computed(() => context.activeTab.value === props.value);
     return () => isActive.value ? h('div', {
       role: 'tabpanel',

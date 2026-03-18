@@ -19,40 +19,46 @@ watch(id, () => {
   isLoading.value = true;
   setTimeout(() => {
     isLoading.value = false;
-  }, 350);
+  }, 400);
 }, { immediate: true });
 const propertyCols = [
-  { key: 'building', label: 'Building', width: 'w-[280px]' },
-  { key: 'type', label: 'Type', width: 'w-[140px]' },
-  { key: 'floorUnit', label: 'Unit', width: 'w-[100px]' },
+  { key: 'buildingName', label: 'Building Name', width: 'w-[250px]' },
+  { key: 'floor', label: 'Floor', width: 'w-[100px]' },
+  { key: 'unit', label: 'Unit', width: 'w-[100px]' },
+  { key: 'zone', label: 'Zone', width: 'w-[120px]' },
+  { key: 'district', label: 'District', width: 'w-[150px]' },
+  { key: 'street', label: 'Street', width: 'w-[180px]' },
+  { key: 'propertyType', label: 'Type', width: 'w-[150px]' },
+  { key: 'source', label: 'Source', width: 'w-[150px]' },
   { key: 'area', label: 'Area', width: 'w-[120px]' },
-  { key: 'tenant', label: 'Tenant', width: 'w-[180px]' },
-  { key: 'contacts', label: 'Contacts', width: 'w-[220px]' },
+  { key: 'address', label: 'Address', width: 'w-[320px]' },
 ];
 const landCols = [
-  { key: 'projectName', label: 'Project Name', width: 'w-[280px]' },
-  { key: 'address', label: 'Address', width: 'w-[320px]' },
-  { key: 'usage', label: 'Usage', width: 'w-[140px]' },
-  { key: 'area', label: 'Area', width: 'w-[120px]' },
+  { key: 'projectName', label: 'Project Name', width: 'w-[350px]' },
+  { key: 'address', label: 'Address', width: 'w-[400px]' },
+  { key: 'usage', label: 'Usage', width: 'w-[180px]' },
+  { key: 'area', label: 'Area', width: 'w-[150px]' },
+  { key: 'year', label: 'Tender Year', width: 'w-[150px]' },
 ];
 const valuationCols = [
-  { key: 'address', label: 'Subject Property', width: 'w-[320px]' },
-  { key: 'date', label: 'Effective Date', width: 'w-[140px]' },
-  { key: 'propertyType', label: 'Asset Type', width: 'w-[140px]' },
-  { key: 'valuer', label: 'Valuer', width: 'w-[180px]' },
+  { key: 'address', label: 'Subject Property', width: 'w-[450px]' },
+  { key: 'date', label: 'Effective Date', width: 'w-[180px]' },
+  { key: 'propertyType', label: 'Asset Type', width: 'w-[180px]' },
+  { key: 'area', label: 'Sized GFA', width: 'w-[150px]' },
+  { key: 'valuer', label: 'Valuer', width: 'w-[220px]' },
 ];
 </script>
 <template>
   <AppLayout container>
-    <div v-if="department" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-500">
+    <div v-if="department" class="space-y-12 animate-in fade-in slide-in-from-bottom-2 duration-700">
       <div class="mb-10 text-left">
-        <nav class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3">
-          <span>Global Intelligence</span>
+        <nav class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-primary/60 mb-3">
+          <span class="hover:text-primary transition-colors cursor-pointer">Global Intelligence</span>
           <span class="opacity-30">/</span>
           <span class="text-primary">{{ department.name }} Region</span>
         </nav>
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-none">
-          {{ department.name }} <span class="text-muted-foreground/10">Explorer</span>
+          {{ department.name }} <span class="text-primary/10">Explorer</span>
         </h1>
       </div>
       <div v-if="isLoading" class="space-y-12">
@@ -68,14 +74,14 @@ const valuationCols = [
           :valuations="valuations"
         />
         <Tabs default-value="properties" class="space-y-10">
-          <TabsList class="bg-secondary/50 p-1 rounded-xl h-auto flex flex-wrap gap-1">
-            <TabsTrigger value="properties" class="flex-1 py-2.5 px-6 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg">
-              Asset Inventory
+          <TabsList class="bg-secondary/50 p-1 rounded-xl h-auto flex flex-wrap gap-1 border border-border/40">
+            <TabsTrigger value="properties" class="flex-1 py-2.5 px-6 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Property
             </TabsTrigger>
-            <TabsTrigger value="land" class="flex-1 py-2.5 px-6 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg">
+            <TabsTrigger value="land" class="flex-1 py-2.5 px-6 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Development Land
             </TabsTrigger>
-            <TabsTrigger v-if="showValuation" value="valuation" class="flex-1 py-2.5 px-6 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg">
+            <TabsTrigger v-if="showValuation" value="valuation" class="flex-1 py-2.5 px-6 text-[10px] font-black uppercase tracking-widest transition-all rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Valuation Data
             </TabsTrigger>
           </TabsList>
@@ -90,10 +96,6 @@ const valuationCols = [
           </TabsContent>
         </Tabs>
       </div>
-    </div>
-    <div v-else class="flex flex-col items-center justify-center min-h-[60vh] text-center">
-      <h2 class="text-2xl font-bold mb-2">Department Not Found</h2>
-      <router-link to="/" class="text-primary hover:underline font-bold uppercase text-xs tracking-widest">Return to Home</router-link>
     </div>
   </AppLayout>
 </template>

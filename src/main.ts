@@ -9,4 +9,4 @@ const pinia = createPinia();
 app.use(pinia);
 app.use(router);
 app.use(VueQueryPlugin);
-app.mount('#root');
+app.mount('#app');
