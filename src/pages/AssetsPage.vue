@@ -6,15 +6,49 @@ import DataTable from '@/components/DataTable.vue';
 import DepartmentStats from '@/components/DepartmentStats.vue';
 import Tabs from '@/components/ui/Tabs.vue';
 import MarketMomentum from '@/components/MarketMomentum.vue';
-import { MOCK_PROPERTIES, MOCK_VALUATION, MOCK_CONTACTS } from '@shared/mock-data';
+import { MOCK_PROPERTIES, MOCK_VALUATION, MOCK_CONTACTS, DEPARTMENTS } from '@shared/mock-data';
 import { useUiStore } from '@/stores/ui';
 const uiStore = useUiStore();
 const activeTab = computed({
   get: () => uiStore.activeAssetTab,
   set: (val) => uiStore.setActiveAssetTab(val)
 });
-const allProperties = computed(() => Object.values(MOCK_PROPERTIES).flat());
-const allValuations = computed(() => Object.values(MOCK_VALUATION).flat());
+const allProperties = computed(() => {
+  return Object.values(MOCK_PROPERTIES || {}).flat().map(prop => {
+    const dept = DEPARTMENTS.find(d => d.id === prop.departmentId);
+    return {
+      ...prop,
+      departmentName: dept ? dept.name : prop.departmentId
+    };
+  });
+});
+const allValuations = computed(() => {
+  return Object.values(MOCK_VALUATION || {}).flat().map(val => {
+    const dept = DEPARTMENTS.find(d => d.id === val.departmentId);
+    return {
+      ...val,
+      departmentName: dept ? dept.name : val.departmentId
+    };
+  });
+});
+/**
+ * Hardened Contact Intelligence Engine
+ * Flattening multi-sector registries with null-safe name concatenation and data fallback.
+ */
+const contactData = computed(() => {
+  const contactsRegistry = MOCK_CONTACTS || {};
+  const flattened = Object.values(contactsRegistry).flat();
+  if (!flattened.length) return [];
+  return flattened.map(c => {
+    const first = (c.firstName || '').trim();
+    const last = (c.lastName || '').trim();
+    const fullName = [first, last].filter(Boolean).join(' ') || 'Unidentified Stakeholder';
+    return {
+      ...c,
+      fullName
+    };
+  });
+});
 const tabItems = [
   { id: 'registry', label: 'Portfolio Registry Explorer' },
   { id: 'valuation', label: 'Valuation Audit Feed' },
@@ -22,7 +56,7 @@ const tabItems = [
 ];
 const registryHeaders = [
   { title: 'Asset Identifier', key: 'buildingName' },
-  { title: 'Sector', key: 'departmentId' },
+  { title: 'Market Sector', key: 'departmentName' },
   { title: 'Classification', key: 'propertyType' },
   { title: 'Area (SQFT)', key: 'area' },
   { title: 'Status', key: 'availabilityStatus' },
@@ -30,7 +64,7 @@ const registryHeaders = [
 ];
 const valuationHeaders = [
   { title: 'Geospatial Address', key: 'address' },
-  { title: 'Sector', key: 'departmentId' },
+  { title: 'Market Sector', key: 'departmentName' },
   { title: 'Audit Date', key: 'date' },
   { title: 'Classification', key: 'propertyType' },
   { title: 'Certified Valuer', key: 'valuer' },
@@ -43,10 +77,6 @@ const contactHeaders = [
   { title: 'Sector Category', key: 'category' },
   { title: 'Contact Protocol', key: 'actions', align: 'end' as const },
 ];
-const contactData = computed(() => MOCK_CONTACTS.map(c => ({
-  ...c,
-  fullName: `${c.firstName} ${c.lastName}`
-})));
 onMounted(() => {
   uiStore.setDimension('assets');
 });
@@ -71,11 +101,11 @@ onMounted(() => {
           <span class="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">GBA-Wide Coverage Active</span>
         </div>
       </div>
-      <!-- High Fidelity Market Visualization -->
-      <MarketMomentum />
+      <div class="max-w-[1600px] mx-auto w-full">
+        <MarketMomentum />
+      </div>
       <DepartmentStats
         :properties="allProperties"
-        :land-supply="[]"
         :valuations="allValuations"
       />
       <div class="space-y-8">
@@ -89,25 +119,13 @@ onMounted(() => {
           mode="out-in"
         >
           <div v-if="activeTab === 'registry'" :key="'registry'">
-            <DataTable
-              :data="allProperties"
-              :headers="registryHeaders"
-              type="property"
-            />
+            <DataTable :data="allProperties" :headers="registryHeaders" type="property" />
           </div>
           <div v-else-if="activeTab === 'valuation'" :key="'valuation'">
-            <DataTable
-              :data="allValuations"
-              :headers="valuationHeaders"
-              type="valuation"
-            />
+            <DataTable :data="allValuations" :headers="valuationHeaders" type="valuation" />
           </div>
           <div v-else-if="activeTab === 'contacts'" :key="'contacts'">
-            <DataTable
-              :data="contactData"
-              :headers="contactHeaders"
-              type="contact"
-            />
+            <DataTable :data="contactData" :headers="contactHeaders" type="contact" />
           </div>
         </Transition>
       </div>

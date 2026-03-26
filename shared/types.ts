@@ -3,12 +3,16 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
 }
-export interface WatchlistItem {
+export type DimensionType = 'department' | 'assets';
+export interface GlobalContact {
   id: string;
-  building: string;
-  departmentId: string;
-  type: string;
-  timestamp: number;
+  firstName: string;
+  lastName: string;
+  chineseName: string;
+  email: string;
+  phone1: string;
+  role: string;
+  category: 'Tenant' | 'Landlord' | 'Legal' | 'Agency';
 }
 export interface User {
   id: string;

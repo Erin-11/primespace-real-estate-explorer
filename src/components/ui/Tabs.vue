@@ -1,63 +1,58 @@
 <script setup lang="ts">
-import { ref, provide, watch } from 'vue';
+import { computed } from 'vue';
+import { cn } from '@/lib/utils';
+interface Tab {
+  id: string;
+  label: string;
+  show?: boolean;
+}
 const props = defineProps<{
-  defaultValue: string;
-  class?: string;
+  tabs: Tab[];
+  modelValue: string;
+  defaultValue?: string;
 }>();
-const activeTab = ref(props.defaultValue);
-watch(() => props.defaultValue, (val) => {
-  activeTab.value = val;
-});
-provide('activeTab', activeTab);
-provide('setActiveTab', (val: string) => {
-  activeTab.value = val;
-});
+const emit = defineEmits(['update:modelValue']);
+const visibleTabs = computed(() => props.tabs.filter(t => t.show !== false));
+const currentActiveId = computed(() => props.modelValue || props.defaultValue || '');
+const handleTabClick = (id: string) => {
+  if (id === currentActiveId.value) return;
+  emit('update:modelValue', id);
+};
 </script>
 <template>
-  <div :class="props.class">
-    <slot />
-  </div>
-</template>
-<script lang="ts">
-import { inject, computed } from 'vue';
-import { cn } from '@/lib/utils';
-export const TabsList = {
-  props: ['class'],
-  template: `<div :class="cn('inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground', $props.class)"><slot /></div>`
-};
-export const TabsTrigger = {
-  props: ['value', 'class'],
-  setup(props: any) {
-    const activeTab = inject('activeTab') as any;
-    const setActiveTab = inject('setActiveTab') as any;
-    const isActive = computed(() => activeTab.value === props.value);
-    return { isActive, setActiveTab, cn };
-  },
-  template: `
+  <div class="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth">
     <button
+      v-for="tab in visibleTabs"
+      :key="tab.id"
       type="button"
-      @click="setActiveTab(value)"
+      @click="handleTabClick(tab.id)"
       :class="cn(
-        'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-        isActive ? 'bg-background text-foreground shadow-sm' : 'hover:bg-background/50',
-        $props.class
+        'px-8 py-5 text-[10px] font-black uppercase tracking-[0.25em] transition-all relative whitespace-nowrap outline-none group',
+        currentActiveId === tab.id ? 'text-primary' : 'text-muted-foreground/40 hover:text-foreground'
       )"
     >
-      <slot />
+      <span class="relative z-10 transition-transform duration-300 group-active:scale-95 block">
+        {{ tab.label }}
+      </span>
+      <!-- Persistent Active Line -->
+      <div
+        v-if="currentActiveId === tab.id"
+        class="absolute bottom-0 left-0 right-0 h-1 bg-primary rounded-t-full transition-all duration-300 animate-in fade-in slide-in-from-bottom-1"
+      ></div>
+      <!-- Hover Indicator -->
+      <div
+        class="absolute bottom-0 left-4 right-4 h-1 bg-primary/10 rounded-t-full opacity-0 group-hover:opacity-100 transition-opacity"
+        :class="{ 'hidden': currentActiveId === tab.id }"
+      ></div>
     </button>
-  `
-};
-export const TabsContent = {
-  props: ['value', 'class'],
-  setup(props: any) {
-    const activeTab = inject('activeTab') as any;
-    const isActive = computed(() => activeTab.value === props.value);
-    return { isActive, cn };
-  },
-  template: `
-    <div v-if="isActive" :class="cn('mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', $props.class)">
-      <slot />
-    </div>
-  `
-};
-</script>
+  </div>
+</template>
+<style scoped>
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+</style>
