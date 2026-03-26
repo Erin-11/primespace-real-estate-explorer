@@ -2,10 +2,9 @@
 import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import {
-  Search, MapPin, Star, ChevronDown, Filter,
-  ArrowUpDown, ArrowUp, ArrowDown, Info
+  Search, MapPin, ChevronDown, Filter,
+  ArrowUpDown, ArrowUp, ArrowDown, Globe
 } from 'lucide-vue-next';
-import { useWatchlistStore } from '@/stores/watchlist';
 import MapModal from '@/components/MapModal.vue';
 import { cn } from '@/lib/utils';
 interface Header {
@@ -27,7 +26,6 @@ const props = withDefaults(
 );
 const router = useRouter();
 const route = useRoute();
-const watchlistStore = useWatchlistStore();
 const search = ref('');
 const selectedType = ref('All Categories');
 const selectedAddress = ref<string | null>(null);
@@ -37,7 +35,7 @@ const uniqueTypes = computed(() => {
   const data = props.data || [];
   const types = new Set<string>();
   data.forEach(item => {
-    const val = item.propertyType || item.usage || item.valuationType || item.type;
+    const val = item.propertyType || item.usage || item.valuationType || item.category || item.type;
     if (val) types.add(val);
   });
   return ['All Categories', ...Array.from(types).sort()];
@@ -49,6 +47,7 @@ const filteredData = computed(() => {
       item.propertyType === selectedType.value ||
       item.usage === selectedType.value ||
       item.valuationType === selectedType.value ||
+      item.category === selectedType.value ||
       item.type === selectedType.value
     );
   }
@@ -56,7 +55,7 @@ const filteredData = computed(() => {
     const q = search.value.toLowerCase();
     data = data.filter(item =>
       Object.entries(item).some(([key, val]) => {
-        if (['contactRecords', 'contacts', 'metadata', 'id'].includes(key)) return false;
+        if (['contactRecords', 'id'].includes(key)) return false;
         if (val === null || val === undefined) return false;
         return String(val).toLowerCase().includes(q);
       })
@@ -71,8 +70,8 @@ const filteredData = computed(() => {
         valA = parseFloat(String(valA).replace(/[^\d.]/g, '')) || 0;
         valB = parseFloat(String(valB).replace(/[^\d.]/g, '')) || 0;
       } else {
-        valA = String(valA).toLowerCase();
-        valB = String(valB).toLowerCase();
+        valA = valA !== null && valA !== undefined ? String(valA).toLowerCase() : '';
+        valB = valB !== null && valB !== undefined ? String(valB).toLowerCase() : '';
       }
       if (valA < valB) return sortDesc.value ? 1 : -1;
       if (valA > valB) return sortDesc.value ? -1 : 1;
@@ -95,10 +94,11 @@ const toggleSort = (key: string) => {
   }
 };
 const handleRowClick = (item: any) => {
+  if (props.type === 'contact') return;
   if (!item?.id) return;
-  const currentDeptId = route.params.id as string;
-  const targetDeptId = item?.departmentId || currentDeptId || 'hong-kong';
-  if (props.type === 'property') {
+  // Prevent row navigation if clicking on a button inside row (handled by stop modifiers usually, but this is a fallback)
+  const targetDeptId = item?.departmentId || (route.params.id as string) || 'hong-kong';
+  if (props.type === 'property' || (item.buildingName && !item.usage && !item.valuationType)) {
     router.push(`/department/${targetDeptId}/property/${item.id}`);
   } else {
     handleMap(item);
@@ -107,15 +107,6 @@ const handleRowClick = (item: any) => {
 const handleMap = (item: any) => {
   const addr = item?.address || item?.buildingName || item?.projectName || item?.building || '';
   if (addr) selectedAddress.value = addr;
-};
-const toggleBookmark = (item: any) => {
-  const currentDeptId = route.params.id as string;
-  watchlistStore.toggleBookmark({
-    id: item?.id,
-    building: item?.buildingName || item?.projectName || item?.address || item?.building || 'Unknown Asset',
-    departmentId: item?.departmentId || currentDeptId || 'unknown',
-    type: item?.propertyType || item?.usage || item?.type || 'Institutional',
-  });
 };
 const getBadgeStyles = (type: string) => {
   const t = type?.toLowerCase() || '';
@@ -129,12 +120,11 @@ const getBadgeStyles = (type: string) => {
 </script>
 <template>
   <div v-if="props.headers && props.headers.length > 0" class="w-full bg-card border rounded-2xl overflow-hidden shadow-soft flex flex-col">
-    <!-- Table Header / Filters -->
     <div class="p-6 border-b flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-muted/5">
       <div class="space-y-1">
-        <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Market Registry</h3>
+        <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Intelligence Stream</h3>
         <p class="text-xs text-muted-foreground font-medium">
-          Showing {{ filteredData.length }} validated institutional records
+          {{ filteredData.length }} verified institutional records found
         </p>
       </div>
       <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:max-w-2xl">
@@ -153,13 +143,12 @@ const getBadgeStyles = (type: string) => {
           <input
             v-model="search"
             type="text"
-            placeholder="Search across registry parameters..."
+            placeholder="Search dataset parameters..."
             class="w-full pl-10 pr-4 py-2.5 bg-background border rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
           />
         </div>
       </div>
     </div>
-    <!-- Table Content -->
     <div class="overflow-x-auto w-full custom-scrollbar bg-card">
       <table class="w-full text-sm text-left border-collapse min-w-[1500px]">
         <thead>
@@ -169,7 +158,7 @@ const getBadgeStyles = (type: string) => {
               :key="h.key"
               @click="toggleSort(h.key)"
               :class="cn(
-                'px-6 py-5 font-black text-muted-foreground uppercase text-[9px] tracking-[0.15em] cursor-pointer hover:bg-muted/50 transition-colors sticky top-0 bg-muted/30 backdrop-blur-md z-10 border-b shadow-[0_1px_0_0_rgba(0,0,0,0.05)]',
+                'px-6 py-5 font-black text-muted-foreground uppercase text-[9px] tracking-[0.15em] cursor-pointer hover:bg-muted/50 transition-colors sticky top-0 bg-muted/30 backdrop-blur-md z-10 border-b',
                 h.align === 'end' ? 'text-right' : 'text-left'
               )"
             >
@@ -177,7 +166,7 @@ const getBadgeStyles = (type: string) => {
                 <span class="group-hover:text-primary transition-colors">{{ h.title }}</span>
                 <component
                   :is="sortBy === h.key ? (sortDesc ? ArrowDown : ArrowUp) : ArrowUpDown"
-                  :class="cn('h-3 w-3 transition-opacity', sortBy === h.key ? 'opacity-100 text-primary' : 'opacity-20 group-hover:opacity-50')"
+                  :class="cn('h-3 w-3 transition-opacity', sortBy === h.key ? 'opacity-100 text-primary' : 'opacity-20')"
                 />
               </div>
             </th>
@@ -191,92 +180,59 @@ const getBadgeStyles = (type: string) => {
             class="hover:bg-accent/40 transition-colors group cursor-pointer"
           >
             <td v-for="h in props.headers" :key="h.key" :class="cn('px-6 py-5 whitespace-nowrap align-middle', h.align === 'end' && 'text-right')">
-              <template v-if="['buildingName', 'building', 'projectName'].includes(h.key)">
-                <span class="text-primary font-black group-hover:underline decoration-2 underline-offset-4 truncate max-w-[400px] block transition-all duration-300">
+              <template v-if="['buildingName', 'building', 'projectName', 'fullName'].includes(h.key)">
+                <span class="text-primary font-black group-hover:underline decoration-2 underline-offset-4 truncate max-w-[400px] block transition-all">
                   {{ item[h.key] }}
                 </span>
               </template>
-              <template v-else-if="h.key === 'address'">
-                <button
-                  @click.stop="handleMap(item)"
-                  class="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all group/link text-left outline-none"
-                >
-                  <MapPin class="h-3.5 w-3.5 text-primary/40 group-hover/link:text-primary group-hover/link:scale-110 transition-all shrink-0" />
-                  <span class="font-medium group-hover/link:underline truncate max-w-[400px] inline-block decoration-2 underline-offset-4">{{ item[h.key] }}</span>
+              <template v-else-if="h.key === 'chineseName'">
+                <span class="text-foreground/60 font-medium font-sans tracking-widest">{{ item[h.key] }}</span>
+              </template>
+              <template v-else-if="h.key === 'address' || h.key === 'projectName'">
+                <button @click.stop="handleMap(item)" class="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all group/link text-left">
+                  <MapPin class="h-3.5 w-3.5 text-primary/40 group-hover/link:text-primary shrink-0" />
+                  <span class="font-medium group-hover/link:underline truncate max-w-[300px] inline-block">{{ item[h.key] }}</span>
                 </button>
               </template>
-              <template v-else-if="['propertyType', 'usage', 'valuationType', 'type'].includes(h.key)">
+              <template v-else-if="['propertyType', 'usage', 'valuationType', 'category', 'type'].includes(h.key)">
                 <span :class="cn('inline-flex items-center px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider border', getBadgeStyles(item[h.key]))">
                   {{ item[h.key] }}
                 </span>
               </template>
-              <template v-else-if="h.key === 'availabilityStatus'">
-                <div class="flex items-center gap-2">
-                  <div :class="cn('h-1.5 w-1.5 rounded-full shrink-0', item[h.key] === 'Available' ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground/40')"></div>
-                  <span class="font-black text-[10px] uppercase tracking-widest">{{ item[h.key] }}</span>
-                </div>
-              </template>
               <template v-else-if="h.key === 'actions'">
                 <div class="flex items-center justify-end gap-3">
-                  <button
-                    @click.stop="toggleBookmark(item)"
-                    :class="cn(
-                      'p-2 rounded-xl border transition-all duration-300 outline-none',
-                      watchlistStore.isBookmarked(item?.id)
-                        ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20'
-                        : 'bg-background hover:bg-accent text-muted-foreground'
-                    )"
-                    title="Toggle Bookmark"
-                  >
-                    <Star class="h-4 w-4" :fill="watchlistStore.isBookmarked(item?.id) ? 'currentColor' : 'none'" />
-                  </button>
-                  <button
-                    @click.stop="handleMap(item)"
-                    class="p-2 bg-background border hover:bg-primary hover:text-white hover:border-primary rounded-xl transition-all text-primary shadow-sm outline-none"
-                    title="View Map"
-                  >
-                    <MapPin class="h-4 w-4" />
-                  </button>
+                  <button @click.stop="handleMap(item)" class="p-2 bg-background border hover:bg-primary hover:text-white rounded-xl transition-all text-primary shadow-sm active:scale-90"><MapPin class="h-4 w-4" /></button>
                 </div>
               </template>
               <template v-else>
-                <span class="text-muted-foreground font-black tracking-tight text-[11px] uppercase">
-                  {{ item[h.key] ?? 'N/A' }}
-                </span>
+                <span class="text-muted-foreground font-black tracking-tight text-[11px] uppercase">{{ item[h.key] ?? 'N/A' }}</span>
               </template>
             </td>
           </tr>
-          <!-- Internal Empty State Handling -->
           <tr v-if="filteredData.length === 0">
             <td :colspan="props.headers.length" class="px-6 py-24 text-center bg-card">
-              <div class="flex flex-col items-center gap-4 opacity-40">
-                <Info class="h-10 w-10 text-muted-foreground" />
-                <p class="text-[10px] font-black uppercase tracking-[0.2em]">Zero records identified in registry stream</p>
+              <div class="flex flex-col items-center gap-4">
+                <div class="h-16 w-16 rounded-2xl bg-muted/50 flex items-center justify-center text-muted-foreground/30 border border-dashed">
+                  <Globe class="h-8 w-8" />
+                </div>
+                <div class="space-y-1">
+                  <p class="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">Zero records identified in global stream</p>
+                  <p class="text-[9px] font-bold text-muted-foreground/60 uppercase tracking-widest">Adjust filters to re-initialize search</p>
+                </div>
               </div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <!-- Footer Audit Status -->
     <div class="px-8 py-5 border-t flex items-center justify-between bg-muted/10">
       <div class="flex items-center gap-3">
-        <div class="flex items-center gap-1.5">
-          <div class="h-2 w-2 rounded-full bg-green-500"></div>
-          <span class="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Protocol Active</span>
-        </div>
+        <div class="flex items-center gap-1.5"><div class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div><span class="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Protocol Active</span></div>
         <div class="h-3 w-px bg-border"></div>
-        <span class="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Institutional Grade Registry v2.5</span>
+        <span class="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Institutional Grade Registry v5.4</span>
       </div>
-      <div class="flex items-center gap-2 text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">
-        Total Entities: <span class="text-foreground ml-1">{{ filteredData.length }}</span>
-      </div>
+      <div class="text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">Aggregate Count: <span class="text-foreground ml-1">{{ filteredData.length }}</span></div>
     </div>
-    <MapModal
-      v-if="selectedAddress"
-      :address="selectedAddress"
-      :is-open="!!selectedAddress"
-      @on-close="selectedAddress = null"
-    />
+    <MapModal v-if="selectedAddress" :address="selectedAddress" :is-open="!!selectedAddress" @on-close="selectedAddress = null" />
   </div>
 </template>

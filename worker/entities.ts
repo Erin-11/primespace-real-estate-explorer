@@ -2,21 +2,14 @@
  * Minimal real-world demo: One Durable Object instance per entity (User, ChatBoard), with Indexes for listing.
  */
 import { IndexedEntity } from "./core-utils";
-import type { User, Chat, ChatMessage, WatchlistItem } from "@shared/types";
-import { MOCK_CHAT_MESSAGES, MOCK_CHATS, MOCK_USERS } from "@shared/mock-data";
+import type { User, Chat, ChatMessage } from "@shared/types";
+import { MOCK_CHATS, MOCK_USERS, MOCK_CHAT_MESSAGES } from "@shared/mock-data";
 // USER ENTITY: one DO instance per user
 export class UserEntity extends IndexedEntity<User> {
   static readonly entityName = "user";
   static readonly indexName = "users";
   static readonly initialState: User = { id: "", name: "" };
   static seedData = MOCK_USERS;
-}
-// WATCHLIST ENTITY: Persists bookmarked properties
-export class WatchlistEntity extends IndexedEntity<WatchlistItem> {
-  static readonly entityName = "watchlist";
-  static readonly indexName = "watchlists";
-  static readonly initialState: WatchlistItem = { id: "", building: "", departmentId: "", type: "", timestamp: 0 };
-  static seedData = [];
 }
 // CHAT BOARD ENTITY: one DO instance per chat board, stores its own messages
 export type ChatBoardState = Chat & { messages: ChatMessage[] };

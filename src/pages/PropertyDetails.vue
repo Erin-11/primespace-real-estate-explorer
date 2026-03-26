@@ -9,7 +9,6 @@ import {
 } from 'lucide-vue-next';
 import { MOCK_PROPERTIES, type ContactRecord } from '@shared/mock-data';
 import { useUiStore } from '@/stores/ui';
-import { useWatchlistStore } from '@/stores/watchlist';
 import AppLayout from '@/components/layout/AppLayout.vue';
 import ContactModal from '@/components/ContactModal.vue';
 import MapModal from '@/components/MapModal.vue';
@@ -17,7 +16,6 @@ import { cn } from '@/lib/utils';
 const route = useRoute();
 const router = useRouter();
 const uiStore = useUiStore();
-const watchlistStore = useWatchlistStore();
 const deptId = computed(() => route.params.id as string);
 const propId = computed(() => route.params.propertyId as string);
 const property = computed(() => {
@@ -36,7 +34,6 @@ const isMapModalOpen = ref(false);
 const isEmbeddedMapLoaded = ref(false);
 const modalTitle = ref('');
 const activeContacts = ref<ContactRecord[]>([]);
-const isBookmarked = computed(() => property.value?.id ? watchlistStore.isBookmarked(property.value.id) : false);
 const encodedAddress = computed(() => property.value ? encodeURIComponent(property.value.address) : '');
 const goBack = () => {
   if (window.history.length > 2) {
@@ -54,15 +51,6 @@ const openContactRegistry = (category: 'Tenant' | 'Landlord') => {
     c.category === category || c.category === 'Legal' || c.category === 'Agency'
   );
   isContactModalOpen.value = true;
-};
-const toggleWatchlist = () => {
-  if (!property.value) return;
-  watchlistStore.toggleBookmark({
-    id: property.value.id,
-    building: property.value?.buildingName || '',
-    departmentId: deptId.value || property.value.departmentId || 'unknown',
-    type: property.value?.propertyType || ''
-  });
 };
 const triggerAudit = () => {
   uiStore.showSnackbar({
@@ -98,16 +86,6 @@ const metrics = [
           Return to Market Terminal
         </button>
         <div class="flex items-center gap-2">
-          <button
-            @click="toggleWatchlist"
-            :class="cn(
-              'inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all',
-              isBookmarked ? 'bg-amber-500/10 border-amber-500/20 text-amber-600' : 'bg-card hover:bg-accent'
-            )"
-          >
-            <Star class="h-3.5 w-3.5" :fill="isBookmarked ? 'currentColor' : 'none'" />
-            {{ isBookmarked ? 'Tracked' : 'Track Asset' }}
-          </button>
           <button class="p-2 rounded-lg border bg-card hover:bg-accent text-muted-foreground transition-colors">
             <Share2 class="h-4 w-4" />
           </button>
