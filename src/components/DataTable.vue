@@ -1,178 +1,282 @@
 <script setup lang="ts">
-import { toRefs, ref, computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useDataTable } from '@/composables/useDataTable';
-import { useWatchlistStore } from '@/stores/watchlist';
-import { toast } from 'vue-sonner';
 import {
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  Star,
-  MapPin,
-  Copy,
-  Search,
-  Filter,
-  ChevronDown,
-  ExternalLink
+  Search, MapPin, Star, ChevronDown, Filter,
+  ArrowUpDown, ArrowUp, ArrowDown, Info
 } from 'lucide-vue-next';
+import { useWatchlistStore } from '@/stores/watchlist';
 import MapModal from '@/components/MapModal.vue';
-const props = defineProps<{
-  data: any[];
-  columns: { key: string; label: string; width: string }[];
-  type: 'property' | 'land' | 'valuation';
-}>();
-const { data } = toRefs(props);
+import { cn } from '@/lib/utils';
+interface Header {
+  title: string;
+  key: string;
+  align?: 'start' | 'center' | 'end';
+  sortable?: boolean;
+}
+const props = withDefaults(
+  defineProps<{
+    data?: any[];
+    headers?: Header[];
+    type: string;
+  }>(),
+  {
+    data: () => [],
+    headers: () => []
+  }
+);
 const router = useRouter();
 const route = useRoute();
 const watchlistStore = useWatchlistStore();
-const defaultSortKey = computed(() => props.columns[0]?.key || 'id');
-const { processedData, filters, sort, setFilter, toggleSort } = useDataTable(data, defaultSortKey.value);
+const search = ref('');
+const selectedType = ref('All Categories');
 const selectedAddress = ref<string | null>(null);
-const handleMap = (item: any, event: Event) => {
-  event.stopPropagation();
-  const address = item.address || item.buildingName || item.projectName;
-  selectedAddress.value = address;
-};
-const toggleBookmark = (item: any, event: Event) => {
-  event.stopPropagation();
-  watchlistStore.toggleBookmark({
-    id: item.id,
-    building: item.buildingName || item.projectName || item.address,
-    departmentId: route.params.id as string,
-    type: item.propertyType || 'Standard',
+const sortBy = ref<string | null>(null);
+const sortDesc = ref(false);
+const uniqueTypes = computed(() => {
+  const data = props.data || [];
+  const types = new Set<string>();
+  data.forEach(item => {
+    const val = item.propertyType || item.usage || item.valuationType || item.type;
+    if (val) types.add(val);
   });
+  return ['All Categories', ...Array.from(types).sort()];
+});
+const filteredData = computed(() => {
+  let data = [...(props.data || [])];
+  if (selectedType.value !== 'All Categories') {
+    data = data.filter(item =>
+      item.propertyType === selectedType.value ||
+      item.usage === selectedType.value ||
+      item.valuationType === selectedType.value ||
+      item.type === selectedType.value
+    );
+  }
+  if (search.value) {
+    const q = search.value.toLowerCase();
+    data = data.filter(item =>
+      Object.entries(item).some(([key, val]) => {
+        if (['contactRecords', 'contacts', 'metadata', 'id'].includes(key)) return false;
+        if (val === null || val === undefined) return false;
+        return String(val).toLowerCase().includes(q);
+      })
+    );
+  }
+  if (sortBy.value) {
+    const key = sortBy.value;
+    data.sort((a, b) => {
+      let valA = a[key] ?? '';
+      let valB = b[key] ?? '';
+      if (key === 'area' || key === 'valuation') {
+        valA = parseFloat(String(valA).replace(/[^\d.]/g, '')) || 0;
+        valB = parseFloat(String(valB).replace(/[^\d.]/g, '')) || 0;
+      } else {
+        valA = String(valA).toLowerCase();
+        valB = String(valB).toLowerCase();
+      }
+      if (valA < valB) return sortDesc.value ? 1 : -1;
+      if (valA > valB) return sortDesc.value ? -1 : 1;
+      return 0;
+    });
+  }
+  return data;
+});
+const toggleSort = (key: string) => {
+  if (sortBy.value === key) {
+    if (sortDesc.value) {
+      sortBy.value = null;
+      sortDesc.value = false;
+    } else {
+      sortDesc.value = true;
+    }
+  } else {
+    sortBy.value = key;
+    sortDesc.value = false;
+  }
 };
-const copyInfo = (item: any, event: Event) => {
-  event.stopPropagation();
-  const text = `${item.buildingName || item.projectName || item.address}`;
-  navigator.clipboard.writeText(text).then(() => {
-    toast.success('Location copied to clipboard');
-  });
-};
-const navigateToDetails = (item: any) => {
+const handleRowClick = (item: any) => {
+  if (!item?.id) return;
+  const currentDeptId = route.params.id as string;
+  const targetDeptId = item?.departmentId || currentDeptId || 'hong-kong';
   if (props.type === 'property') {
-    router.push(`/department/${route.params.id}/property/${item.id}`);
+    router.push(`/department/${targetDeptId}/property/${item.id}`);
+  } else {
+    handleMap(item);
   }
 };
-const propertyTypes = ['Commercial', 'Residential', 'Retail', 'Hotel', 'Industrial', 'Other'];
-const getAvailabilityClass = (status: string) => {
-  switch (status?.toLowerCase()) {
-    case 'available': return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
-    case 'under offer': return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
-    case 'leased': return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
-    default: return 'bg-secondary text-muted-foreground border-border';
-  }
+const handleMap = (item: any) => {
+  const addr = item?.address || item?.buildingName || item?.projectName || item?.building || '';
+  if (addr) selectedAddress.value = addr;
+};
+const toggleBookmark = (item: any) => {
+  const currentDeptId = route.params.id as string;
+  watchlistStore.toggleBookmark({
+    id: item?.id,
+    building: item?.buildingName || item?.projectName || item?.address || item?.building || 'Unknown Asset',
+    departmentId: item?.departmentId || currentDeptId || 'unknown',
+    type: item?.propertyType || item?.usage || item?.type || 'Institutional',
+  });
+};
+const getBadgeStyles = (type: string) => {
+  const t = type?.toLowerCase() || '';
+  if (t.includes('commercial') || t.includes('office')) return 'bg-primary/10 text-primary border-primary/20';
+  if (t.includes('retail') || t.includes('shop')) return 'bg-pink-500/10 text-pink-600 border-pink-500/20';
+  if (t.includes('industrial') || t.includes('warehouse')) return 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20';
+  if (t.includes('land') || t.includes('supply')) return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
+  if (t.includes('valuation') || t.includes('mortgage')) return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
+  return 'bg-muted text-muted-foreground border-border';
 };
 </script>
 <template>
-  <div class="space-y-4">
-    <div class="border border-border/60 rounded-2xl shadow-soft bg-card/40 backdrop-blur-xl relative group/container overflow-hidden">
-      <!-- Horizontal Scroll Area -->
-      <div class="overflow-x-auto overflow-y-auto max-h-[calc(100vh-380px)] custom-scrollbar relative">
-        <table class="w-full text-left border-collapse min-w-[1500px]">
-          <thead class="sticky top-0 z-[30] bg-background/95 backdrop-blur-xl border-b border-border/50">
-            <tr>
-              <th v-for="col in columns" :key="col.key" :class="['h-14 px-6', col.width]">
-                <button
-                  @click="toggleSort(col.key)"
-                  class="flex items-center gap-2 w-full h-full font-black text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 hover:text-primary transition-colors group"
-                >
-                  {{ col.label }}
-                  <span class="shrink-0 transition-all opacity-0 group-hover:opacity-100 flex items-center">
-                    <ArrowUp v-if="sort.key === col.key && sort.direction === 'asc'" class="h-3.5 w-3.5 text-primary" />
-                    <ArrowDown v-else-if="sort.key === col.key && sort.direction === 'desc'" class="h-3.5 w-3.5 text-primary" />
-                    <ArrowUpDown v-else class="h-3.5 w-3.5 text-muted-foreground/30" />
-                  </span>
-                </button>
-              </th>
-              <th class="w-[160px] px-6 text-center font-black text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60 sticky right-0 bg-background/95 backdrop-blur-xl border-l border-border/10 shadow-[-12px_0_20px_-5px_rgba(0,0,0,0.05)]">
-                Operations
-              </th>
-            </tr>
-            <tr class="bg-muted/30 border-b border-border/40">
-              <td v-for="col in columns" :key="col.key" class="p-3">
-                <div v-if="col.key === 'propertyType'" class="relative">
-                   <select
-                    class="w-full h-9 pl-4 pr-10 text-[11px] font-bold bg-background/50 border border-border/40 rounded-xl focus:ring-2 focus:ring-primary/20 appearance-none transition-all cursor-pointer"
-                    @change="(e: any) => setFilter(col.key, e.target.value)"
-                  >
-                    <option value="">Filter Type...</option>
-                    <option v-for="t in propertyTypes" :key="t" :value="t">{{ t }}</option>
-                  </select>
-                  <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/40 pointer-events-none" />
-                </div>
-                <div v-else class="relative group">
-                  <Search class="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
-                  <input
-                    type="text"
-                    :placeholder="`Search ${col.label}...`"
-                    class="w-full h-9 pl-10 pr-4 text-[11px] font-bold bg-background/50 border border-border/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
-                    :value="filters[col.key]"
-                    @input="(e: any) => setFilter(col.key, e.target.value)"
-                  />
-                </div>
-              </td>
-              <td class="p-3 sticky right-0 bg-muted/40 backdrop-blur-xl border-l border-border/10 flex items-center justify-center h-14 opacity-20"><Filter class="w-4 h-4" /></td>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-border/30">
-            <tr
-              v-for="item in processedData"
-              :key="item.id"
-              class="group hover:bg-primary/[0.04] transition-all duration-300 cursor-pointer"
-              @click="navigateToDetails(item)"
-            >
-              <td v-for="col in columns" :key="col.key" class="px-6 py-4 text-xs font-bold tracking-tight text-foreground/80 group-hover:text-foreground">
-                <span v-if="col.key === 'propertyType' || col.key === 'usage'" class="inline-flex items-center px-2.5 py-0.5 bg-primary/10 text-primary text-[9px] font-black uppercase tracking-widest rounded-lg border border-primary/20">
-                   {{ item[col.key] }}
-                </span>
-                <span v-else-if="col.key === 'availabilityStatus'" :class="['inline-flex items-center px-3 py-1 text-[9px] font-black uppercase tracking-widest rounded-full border', getAvailabilityClass(item[col.key])]">
-                   {{ item[col.key] }}
-                </span>
-                <span v-else-if="col.key === 'buildingName' || col.key === 'projectName'" class="text-primary font-black hover:underline decoration-2 underline-offset-4 flex items-center gap-1.5">
-                  {{ item[col.key] }}
-                  <ExternalLink v-if="type === 'property'" class="w-3 h-3 opacity-0 group-hover:opacity-40 transition-opacity" />
-                </span>
-                <span v-else-if="col.key === 'address'" class="hover:text-primary transition-colors italic opacity-70 group-hover:opacity-100">
-                  {{ item[col.key] }}
-                </span>
-                <span v-else>{{ item[col.key] }}</span>
-              </td>
-              <td class="px-6 py-4 sticky right-0 bg-background/95 backdrop-blur-xl group-hover:bg-primary/[0.04] border-l border-border/10 transition-colors shadow-[-12px_0_20px_-5px_rgba(0,0,0,0.03)]" @click.stop>
-                <div class="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0">
-                  <button
-                    v-if="type === 'property'"
-                    class="h-9 w-9 flex items-center justify-center rounded-xl transition-all border border-transparent hover:border-border hover:bg-background"
-                    :class="watchlistStore.isBookmarked(item.id) ? 'text-amber-500' : 'text-muted-foreground/40 hover:text-amber-500'"
-                    @click="(e) => toggleBookmark(item, e)"
-                    aria-label="Bookmark Asset"
-                  >
-                    <Star class="h-4.5 w-4.5 transition-all duration-300" :class="watchlistStore.isBookmarked(item.id) ? 'fill-current scale-110' : ''" />
-                  </button>
-                  <button
-                    class="h-9 w-9 flex items-center justify-center rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all shadow-sm"
-                    @click="(e) => handleMap(item, e)"
-                    aria-label="View Geo-Location"
-                  >
-                    <MapPin class="h-4.5 w-4.5" />
-                  </button>
-                  <button
-                    class="h-9 w-9 flex items-center justify-center rounded-xl text-muted-foreground/40 hover:text-foreground hover:bg-secondary transition-all"
-                    @click="(e) => copyInfo(item, e)"
-                    aria-label="Copy Details"
-                  >
-                    <Copy class="h-4.5 w-4.5" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+  <div v-if="props.headers && props.headers.length > 0" class="w-full bg-card border rounded-2xl overflow-hidden shadow-soft flex flex-col">
+    <!-- Table Header / Filters -->
+    <div class="p-6 border-b flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-muted/5">
+      <div class="space-y-1">
+        <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Market Registry</h3>
+        <p class="text-xs text-muted-foreground font-medium">
+          Showing {{ filteredData.length }} validated institutional records
+        </p>
       </div>
-      <!-- Right scroll shadow hint -->
-      <div class="absolute top-0 right-0 bottom-0 w-8 pointer-events-none bg-gradient-to-l from-background/40 to-transparent opacity-0 group-hover/container:opacity-100 transition-opacity md:block hidden" />
+      <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:max-w-2xl">
+        <div class="relative w-full sm:w-64">
+          <Filter class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <select
+            v-model="selectedType"
+            class="w-full pl-10 pr-10 py-2.5 bg-background border rounded-xl text-xs font-bold appearance-none focus:ring-2 focus:ring-primary/20 transition-all outline-none cursor-pointer"
+          >
+            <option v-for="t in uniqueTypes" :key="t" :value="t">{{ t }}</option>
+          </select>
+          <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+        </div>
+        <div class="relative flex-1 w-full">
+          <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <input
+            v-model="search"
+            type="text"
+            placeholder="Search across registry parameters..."
+            class="w-full pl-10 pr-4 py-2.5 bg-background border rounded-xl text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+          />
+        </div>
+      </div>
     </div>
-    <MapModal :address="selectedAddress || ''" :is-open="!!selectedAddress" @on-close="selectedAddress = null" />
+    <!-- Table Content -->
+    <div class="overflow-x-auto w-full custom-scrollbar bg-card">
+      <table class="w-full text-sm text-left border-collapse min-w-[1500px]">
+        <thead>
+          <tr class="bg-muted/30 border-b">
+            <th
+              v-for="h in props.headers"
+              :key="h.key"
+              @click="toggleSort(h.key)"
+              :class="cn(
+                'px-6 py-5 font-black text-muted-foreground uppercase text-[9px] tracking-[0.15em] cursor-pointer hover:bg-muted/50 transition-colors sticky top-0 bg-muted/30 backdrop-blur-md z-10 border-b shadow-[0_1px_0_0_rgba(0,0,0,0.05)]',
+                h.align === 'end' ? 'text-right' : 'text-left'
+              )"
+            >
+              <div :class="cn('flex items-center gap-2 group', h.align === 'end' && 'justify-end')">
+                <span class="group-hover:text-primary transition-colors">{{ h.title }}</span>
+                <component
+                  :is="sortBy === h.key ? (sortDesc ? ArrowDown : ArrowUp) : ArrowUpDown"
+                  :class="cn('h-3 w-3 transition-opacity', sortBy === h.key ? 'opacity-100 text-primary' : 'opacity-20 group-hover:opacity-50')"
+                />
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-border/50">
+          <tr
+            v-for="item in filteredData"
+            :key="`${props.type}-${item?.id}`"
+            @click="handleRowClick(item)"
+            class="hover:bg-accent/40 transition-colors group cursor-pointer"
+          >
+            <td v-for="h in props.headers" :key="h.key" :class="cn('px-6 py-5 whitespace-nowrap align-middle', h.align === 'end' && 'text-right')">
+              <template v-if="['buildingName', 'building', 'projectName'].includes(h.key)">
+                <span class="text-primary font-black group-hover:underline decoration-2 underline-offset-4 truncate max-w-[400px] block transition-all duration-300">
+                  {{ item[h.key] }}
+                </span>
+              </template>
+              <template v-else-if="h.key === 'address'">
+                <button
+                  @click.stop="handleMap(item)"
+                  class="flex items-center gap-2 text-muted-foreground hover:text-primary transition-all group/link text-left outline-none"
+                >
+                  <MapPin class="h-3.5 w-3.5 text-primary/40 group-hover/link:text-primary group-hover/link:scale-110 transition-all shrink-0" />
+                  <span class="font-medium group-hover/link:underline truncate max-w-[400px] inline-block decoration-2 underline-offset-4">{{ item[h.key] }}</span>
+                </button>
+              </template>
+              <template v-else-if="['propertyType', 'usage', 'valuationType', 'type'].includes(h.key)">
+                <span :class="cn('inline-flex items-center px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider border', getBadgeStyles(item[h.key]))">
+                  {{ item[h.key] }}
+                </span>
+              </template>
+              <template v-else-if="h.key === 'availabilityStatus'">
+                <div class="flex items-center gap-2">
+                  <div :class="cn('h-1.5 w-1.5 rounded-full shrink-0', item[h.key] === 'Available' ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground/40')"></div>
+                  <span class="font-black text-[10px] uppercase tracking-widest">{{ item[h.key] }}</span>
+                </div>
+              </template>
+              <template v-else-if="h.key === 'actions'">
+                <div class="flex items-center justify-end gap-3">
+                  <button
+                    @click.stop="toggleBookmark(item)"
+                    :class="cn(
+                      'p-2 rounded-xl border transition-all duration-300 outline-none',
+                      watchlistStore.isBookmarked(item?.id)
+                        ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20'
+                        : 'bg-background hover:bg-accent text-muted-foreground'
+                    )"
+                    title="Toggle Bookmark"
+                  >
+                    <Star class="h-4 w-4" :fill="watchlistStore.isBookmarked(item?.id) ? 'currentColor' : 'none'" />
+                  </button>
+                  <button
+                    @click.stop="handleMap(item)"
+                    class="p-2 bg-background border hover:bg-primary hover:text-white hover:border-primary rounded-xl transition-all text-primary shadow-sm outline-none"
+                    title="View Map"
+                  >
+                    <MapPin class="h-4 w-4" />
+                  </button>
+                </div>
+              </template>
+              <template v-else>
+                <span class="text-muted-foreground font-black tracking-tight text-[11px] uppercase">
+                  {{ item[h.key] ?? 'N/A' }}
+                </span>
+              </template>
+            </td>
+          </tr>
+          <!-- Internal Empty State Handling -->
+          <tr v-if="filteredData.length === 0">
+            <td :colspan="props.headers.length" class="px-6 py-24 text-center bg-card">
+              <div class="flex flex-col items-center gap-4 opacity-40">
+                <Info class="h-10 w-10 text-muted-foreground" />
+                <p class="text-[10px] font-black uppercase tracking-[0.2em]">Zero records identified in registry stream</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Footer Audit Status -->
+    <div class="px-8 py-5 border-t flex items-center justify-between bg-muted/10">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1.5">
+          <div class="h-2 w-2 rounded-full bg-green-500"></div>
+          <span class="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Protocol Active</span>
+        </div>
+        <div class="h-3 w-px bg-border"></div>
+        <span class="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Institutional Grade Registry v2.5</span>
+      </div>
+      <div class="flex items-center gap-2 text-[9px] font-black text-muted-foreground/40 uppercase tracking-widest">
+        Total Entities: <span class="text-foreground ml-1">{{ filteredData.length }}</span>
+      </div>
+    </div>
+    <MapModal
+      v-if="selectedAddress"
+      :address="selectedAddress"
+      :is-open="!!selectedAddress"
+      @on-close="selectedAddress = null"
+    />
   </div>
 </template>
