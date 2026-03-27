@@ -38,7 +38,7 @@ const handleAssetTabChange = (tab: string) => {
         <div class="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
           <Briefcase class="h-5 w-5 text-primary" />
         </div>
-        <span v-if="uiStore.isSidebarOpen" class="font-bold text-lg tracking-tight truncate">PrimeSpace</span>
+        <span v-if="uiStore.isSidebarOpen" class="font-bold text-lg tracking-tight truncate">Insight</span>
       </router-link>
     </div>
     <div class="flex-1 overflow-y-auto py-4 px-3 space-y-6 custom-scrollbar">

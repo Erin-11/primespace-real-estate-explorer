@@ -72,7 +72,7 @@ onUnmounted(() => {
             <div class="flex items-center gap-2 shrink-0 group">
               <Hexagon class="h-6 w-6 text-primary group-hover:rotate-180 transition-transform duration-1000" />
               <span class="text-[10px] font-black uppercase tracking-[0.25em] whitespace-nowrap hidden sm:inline-block">
-                Prime<span class="text-gradient">Space</span> Intelligence
+                Insight
               </span>
             </div>
           </div>

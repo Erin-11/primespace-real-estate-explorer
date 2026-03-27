@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import {
   Search, MapPin, ChevronDown, Filter,
-  ArrowUpDown, ArrowUp, ArrowDown, Globe
+  ArrowUpDown, ArrowUp, ArrowDown, Globe,
+  ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight
 } from 'lucide-vue-next';
 import MapModal from '@/components/MapModal.vue';
 import { cn } from '@/lib/utils';
@@ -18,10 +19,12 @@ const props = withDefaults(
     data?: any[];
     headers?: Header[];
     type: string;
+    pageSize?: number;
   }>(),
   {
     data: () => [],
-    headers: () => []
+    headers: () => [],
+    pageSize: 10
   }
 );
 const router = useRouter();
@@ -31,6 +34,9 @@ const selectedType = ref('All Categories');
 const selectedAddress = ref<string | null>(null);
 const sortBy = ref<string | null>(null);
 const sortDesc = ref(false);
+// Pagination State
+const currentPage = ref(1);
+const jumpPage = ref(1);
 const uniqueTypes = computed(() => {
   const data = props.data || [];
   const types = new Set<string>();
@@ -63,7 +69,7 @@ const filteredData = computed(() => {
     data.sort((a, b) => {
       let valA = a[key] ?? '';
       let valB = b[key] ?? '';
-      if (key === 'area' || key === 'valuation') {
+      if (key === 'area' || key === 'valuation' || key === 'totalArea') {
         valA = parseFloat(String(valA).replace(/[^\d.]/g, '')) || 0;
         valB = parseFloat(String(valB).replace(/[^\d.]/g, '')) || 0;
       } else {
@@ -77,6 +83,27 @@ const filteredData = computed(() => {
   }
   return data;
 });
+const totalPages = computed(() => Math.ceil(filteredData.value.length / props.pageSize) || 1);
+const paginatedData = computed(() => {
+  const start = (currentPage.value - 1) * props.pageSize;
+  const end = start + props.pageSize;
+  return filteredData.value.slice(start, end);
+});
+watch([search, selectedType, sortBy], () => {
+  currentPage.value = 1;
+  jumpPage.value = 1;
+});
+watch(currentPage, (val) => {
+  jumpPage.value = val;
+});
+const setPage = (page: number) => {
+  if (page < 1) currentPage.value = 1;
+  else if (page > totalPages.value) currentPage.value = totalPages.value;
+  else currentPage.value = page;
+};
+const handleJump = () => {
+  setPage(jumpPage.value);
+};
 const toggleSort = (key: string) => {
   if (sortBy.value === key) {
     if (sortDesc.value) {
@@ -92,9 +119,10 @@ const toggleSort = (key: string) => {
 };
 const handleRowClick = (item: any) => {
   if (props.type === 'contact') return;
-  if (!item?.id) return;
-  const targetDeptId = item?.departmentId || (route.params.id as string) || 'hong-kong';
-  if (props.type === 'property' || item.buildingName) {
+  if (!item || !item.id) return;
+  const targetDeptId = item.departmentId || (route.params.id as string) || 'hong-kong';
+  // Logic updated: trigger property details if buildingName exists, else default to Map
+  if (item.buildingName) {
     router.push(`/department/${targetDeptId}/property/${item.id}`);
   } else {
     handleMap(item);
@@ -117,6 +145,7 @@ const isProminent = (key: string) => ['buildingName', 'building', 'fullName', 'f
 </script>
 <template>
   <div v-if="props.headers && props.headers.length > 0" class="w-full bg-card border rounded-[2rem] overflow-hidden shadow-soft flex flex-col transition-all duration-300">
+    <!-- Terminal Header -->
     <div class="p-8 border-b flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-muted/5">
       <div class="space-y-1">
         <h3 class="text-[10px] font-black uppercase tracking-[0.25em] text-primary">Intelligence Stream</h3>
@@ -146,7 +175,8 @@ const isProminent = (key: string) => ['buildingName', 'building', 'fullName', 'f
         </div>
       </div>
     </div>
-    <div class="overflow-x-auto w-full custom-scrollbar bg-card">
+    <!-- Table Canvas -->
+    <div class="relative overflow-auto w-full custom-scrollbar bg-card">
       <table class="w-full text-sm text-left border-collapse min-w-[1500px]">
         <thead>
           <tr class="bg-muted/30 border-b">
@@ -155,7 +185,8 @@ const isProminent = (key: string) => ['buildingName', 'building', 'fullName', 'f
               :key="h.key"
               @click="toggleSort(h.key)"
               :class="cn(
-                'px-8 py-6 font-black text-muted-foreground uppercase text-[9px] tracking-[0.2em] cursor-pointer hover:bg-muted/50 transition-colors sticky top-0 bg-muted/30 backdrop-blur-md z-10 border-b',
+                'px-8 py-6 font-black text-muted-foreground uppercase text-[9px] tracking-[0.2em] cursor-pointer hover:bg-muted/50 transition-colors sticky border-b bg-card backdrop-blur-md shadow-sm border-b-2 shadow-foreground/5 sticky-header-shadow',
+                'top-0 z-30',
                 h.align === 'end' ? 'text-right' : 'text-left'
               )"
             >
@@ -171,14 +202,24 @@ const isProminent = (key: string) => ['buildingName', 'building', 'fullName', 'f
         </thead>
         <tbody class="divide-y divide-border/50">
           <tr
-            v-for="item in filteredData"
+            v-for="(item, index) in paginatedData"
             :key="`${props.type}-${item?.id}`"
             @click="handleRowClick(item)"
-            class="hover:bg-accent/40 transition-all duration-200 group cursor-pointer"
+            :class="cn(
+              'hover:bg-accent/40 transition-all duration-300 ease-out group cursor-pointer',
+              index === 0 && 'border-t-0'
+            )"
           >
-            <td v-for="h in props.headers" :key="h.key" :class="cn('px-8 py-6 whitespace-nowrap align-middle', h.align === 'end' && 'text-right')">
+            <td
+              v-for="h in props.headers"
+              :key="h.key"
+              :class="cn(
+                'px-8 py-6 whitespace-nowrap align-middle transition-colors duration-300',
+                h.align === 'end' && 'text-right'
+              )"
+            >
               <template v-if="isProminent(h.key)">
-                <span class="text-foreground font-extrabold group-hover:text-primary decoration-primary/30 group-hover:underline decoration-2 underline-offset-8 truncate max-w-[450px] block transition-all">
+                <span class="text-foreground font-extrabold group-hover:text-primary decoration-primary/40 group-hover:underline decoration-2 underline-offset-8 truncate max-w-[450px] block transition-all duration-300">
                   {{ item[h.key] }}
                 </span>
               </template>
@@ -223,17 +264,45 @@ const isProminent = (key: string) => ['buildingName', 'building', 'fullName', 'f
         </tbody>
       </table>
     </div>
-    <div class="px-8 py-6 border-t flex items-center justify-between bg-muted/10">
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2.5">
-          <div class="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
-          <span class="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Protocol Active</span>
+    <!-- Pagination Footer -->
+    <div class="px-8 py-6 border-t flex flex-col sm:flex-row items-center justify-between gap-6 bg-muted/10">
+      <div class="flex items-center gap-2">
+        <button @click="setPage(1)" :disabled="currentPage === 1" class="p-2 rounded-lg border bg-background hover:bg-accent disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-90">
+          <ChevronsLeft class="h-4 w-4" />
+        </button>
+        <button @click="setPage(currentPage - 1)" :disabled="currentPage === 1" class="p-2 rounded-lg border bg-background hover:bg-accent disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-90">
+          <ChevronLeft class="h-4 w-4" />
+        </button>
+        <div class="px-4 flex items-center gap-2">
+          <span class="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Page</span>
+          <span class="text-xs font-black tabular-nums">{{ currentPage }}</span>
+          <span class="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">of</span>
+          <span class="text-xs font-black tabular-nums">{{ totalPages }}</span>
         </div>
-        <div class="h-4 w-px bg-border"></div>
-        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">Institutional Grade Registry v6.0</span>
+        <button @click="setPage(currentPage + 1)" :disabled="currentPage === totalPages" class="p-2 rounded-lg border bg-background hover:bg-accent disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-90">
+          <ChevronRight class="h-4 w-4" />
+        </button>
+        <button @click="setPage(totalPages)" :disabled="currentPage === totalPages" class="p-2 rounded-lg border bg-background hover:bg-accent disabled:opacity-30 disabled:pointer-events-none transition-all active:scale-90">
+          <ChevronsRight class="h-4 w-4" />
+        </button>
       </div>
-      <div class="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em]">
-        Aggregate Count: <span class="text-primary ml-2 tabular-nums">{{ filteredData.length }}</span>
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-3">
+          <label for="jump-page" class="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">Jump to</label>
+          <input
+            id="jump-page"
+            v-model.number="jumpPage"
+            @keyup.enter="handleJump"
+            type="number"
+            min="1"
+            :max="totalPages"
+            class="w-16 px-3 py-1.5 bg-background border rounded-lg text-xs font-black text-center tabular-nums focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+          />
+        </div>
+        <div class="h-4 w-px bg-border hidden sm:block"></div>
+        <div class="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em]">
+          Total Records: <span class="text-primary ml-2 tabular-nums">{{ filteredData.length }}</span>
+        </div>
       </div>
     </div>
     <MapModal v-if="selectedAddress" :address="selectedAddress" :is-open="!!selectedAddress" @on-close="selectedAddress = null" />

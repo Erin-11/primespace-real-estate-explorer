@@ -42,14 +42,6 @@ const assetHubs = [
     count: '500+'
   },
 ];
-const tickerData = [
-  "SZ Tech Hub Yield: +0.22% •",
-  "HK Central Vacancy: 4.1% •",
-  "GBA Aggregate Cap Rate: 3.42% •",
-  "Kowloon Retail Volume: High •",
-  "Institutional Interest: Tier-1 Hubs •",
-  "System Status: Nominal •"
-];
 const getAssetCount = (id: string) => MOCK_PROPERTIES[id]?.length || 0;
 const totalAssetsCount = computed(() => {
   return Object.values(MOCK_PROPERTIES).flat().length;
@@ -62,16 +54,6 @@ const handleAssetHubClick = (tabId: string) => {
 <template>
   <AppLayout>
     <div class="min-h-full pb-20 overflow-x-hidden">
-      <!-- Intelligence Ticker -->
-      <div class="w-full bg-primary/5 border-b py-2 overflow-hidden whitespace-nowrap">
-        <div class="inline-block animate-[ticker_30s_linear_infinite] px-4">
-          <span v-for="i in 4" :key="i" class="inline-flex gap-8">
-            <span v-for="item in tickerData" :key="item" class="text-[9px] font-black uppercase tracking-widest text-primary/60">
-              {{ item }}
-            </span>
-          </span>
-        </div>
-      </div>
       <div class="py-12 md:py-24 px-6">
         <!-- Hero Section -->
         <div class="max-w-4xl mx-auto text-center mb-16 animate-fade-in relative">
@@ -81,10 +63,9 @@ const handleAssetHubClick = (tabId: string) => {
             Terminal Mode: {{ isAssetDimension ? 'Global Intelligence' : 'Sector Explorer' }}
           </div>
           <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-8 leading-[0.9]">
-            Prime<span class="text-gradient">Space</span>
+            Insight
           </h1>
           <p class="text-xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
-            Institutional-grade real estate exploration powered by high-performance edge computing.
             {{ isAssetDimension ? 'Aggregate cross-sector data for high-level portfolio oversight.' : 'Deep-dive into specific market sectors and regional developments.' }}
           </p>
         </div>
